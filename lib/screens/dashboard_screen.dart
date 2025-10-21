@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:skillorbit/controllers/dashboard_controller.dart';
 import 'package:skillorbit/controllers/theme_controller.dart';
 import 'package:skillorbit/screens/home_screen.dart';
+import 'package:skillorbit/screens/my_course_screen.dart';
+import 'package:skillorbit/widgets/app_bar_widget.dart';
 import 'package:skillorbit/widgets/top_round_corner_widget.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -13,13 +15,15 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _currentPageIndex = 0;
+
 
   final ThemeController _themeController = Get.find<ThemeController>();
+  final DashBoardController _dashBoardController =
+      Get.find<DashBoardController>();
 
-  final List<Widget> _pages = const [
-    HomeScreen(),
-    Center(child: Text('My Course')),
+  final List<Widget> pages = [
+    const HomeScreen(),
+    const MyCourseScreen(),
     Center(child: Text('AI Assistant')),
     Center(child: Text('Profile')),
   ];
@@ -27,47 +31,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
+      appBar: AppBarWidget.buildAppBar(_themeController),
       body: TopRoundCornerScreen(
-        child: IndexedStack(index: _currentPageIndex, children: _pages),
+        child: Obx(
+          () => IndexedStack(
+            index: _dashBoardController.currentPageIndex.value,
+            children: pages,
+          ),
+        ),
       ),
       bottomNavigationBar: _buildNavigationBar(context),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      title: Text(
-        'Skill Orbit',
-        style: GoogleFonts.varelaRound(
-          fontSize: 28,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-      actions: [
-        Obx(() {
-          return IconButton(
-            onPressed: () => _themeController.changeTheme(),
-            icon: Icon(
-              _themeController.isDarkMode.value
-                  ? Icons.dark_mode
-                  : Icons.light_mode,
-            ),
-          );
-        }),
-      ],
-    );
-  }
-
   Widget _buildNavigationBar(BuildContext context) {
     return Obx(() {
-      final isDarkMode = _themeController.isDarkMode.value;
       return NavigationBar(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        indicatorColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-        selectedIndex: _currentPageIndex,
+        indicatorColor: Theme.of(context).colorScheme.primary.withAlpha(51),
+        selectedIndex: _dashBoardController.currentPageIndex.value,
         onDestinationSelected: (index) {
-          setState(() => _currentPageIndex = index);
+          _dashBoardController.currentPageIndex.value = index;
+          // setState(() => _currentPageIndex = index);
         },
         destinations: const [
           NavigationDestination(

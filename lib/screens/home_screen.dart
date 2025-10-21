@@ -1,7 +1,11 @@
+// home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:skillorbit/controllers/home_screen_controller.dart';
 import 'package:skillorbit/controllers/theme_controller.dart';
-import 'package:skillorbit/widgets/gradient_circular_progress_indicator.dart';
+import 'package:skillorbit/screens/course_details_screen.dart';
+import 'package:skillorbit/services/demo_course_details_json_data.dart';
+import 'package:skillorbit/widgets/gradient_circular_progress_indicator_widget.dart';
 import 'package:skillorbit/widgets/top_round_corner_widget.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -42,12 +46,17 @@ class HomeScreen extends StatelessWidget {
       'Dart',
     ];
 
+    // Course details data
+    final Map<String, Map<String, dynamic>> courseDetails = CourseDetailsJsonData().courseDetails;
+
     const String enrolledCourse = 'Flutter';
     const String enrollmentDate = '24, July 2024';
-    const double courseProgress = 0.7;
     const String userName = "Alex";
 
     final ThemeController themeController = Get.find<ThemeController>();
+    final HomeScreenController homeScreenController =
+        Get.find<HomeScreenController>();
+    // homeScreenController.courseProgress = 99.9.obs;
 
     return TopRoundCornerScreen(
       child: Padding(
@@ -55,7 +64,7 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 👋 Header (Fixed)
+            // Header
             Text(
               'Welcome back,',
               style: Theme.of(
@@ -69,112 +78,30 @@ class HomeScreen extends StatelessWidget {
               ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
 
-            const SizedBox(height: 8),
-
-            // 📊 Progress Card
-            Obx(() {
-              final isDarkMode = themeController.isDarkMode.value;
-              return Card(
-                elevation: 4,
-                color: isDarkMode
-                    ? Theme.of(context).colorScheme.surfaceContainerHighest
-                    : Theme.of(context).cardColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 80,
-                        height: 80,
-                        child: GradientCircularProgressIndicator(
-                          progress: courseProgress,
-                          strokeWidth: 8,
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.surfaceVariant,
-                          child: Center(
-                            child: Text(
-                              '${(courseProgress * 100).toStringAsFixed(0)}%',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Enrolled in:',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            Text(
-                              enrolledCourse,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'on $enrollmentDate',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-
-            // 🧩 Scrollable Section (Everything below)
+            // Scrollable content
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 16),
-
-                    // 🔍 Search Bar
-                    TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Search for courses...',
-                        prefixIcon: Icon(
-                          Icons.search,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.4),
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        ),
-                        filled: true,
-                        fillColor: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerLow,
-                      ),
+                    // Progress Card
+                    buildProgressCard(
+                      themeController,
+                      homeScreenController,
+                      context,
+                      enrolledCourse,
+                      enrollmentDate,
                     ),
 
                     const SizedBox(height: 16),
 
-                    // 📚 Courses Section
+                    // Search Bar
+                    buildSearchBar(context),
+
+                    const SizedBox(height: 16),
+
+                    // Courses Section
                     Text(
                       'Courses',
                       style: Theme.of(context).textTheme.headlineSmall
@@ -183,7 +110,7 @@ class HomeScreen extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    // 🧩 Courses Grid
+                    // Courses Grid
                     GridView.builder(
                       physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
@@ -197,30 +124,45 @@ class HomeScreen extends StatelessWidget {
                           ),
                       itemCount: courses.length,
                       itemBuilder: (context, index) {
-                        return Card(
-                          elevation: 2,
-                          color: Theme.of(context).cardColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            side: BorderSide(
-                              color: Theme.of(context).dividerColor,
-                              width: 0.3,
+                        final course = courses[index];
+                        final details = courseDetails[course]!;
+                        return GestureDetector(
+                          onTap: () {
+                            Get.to(
+                              () => CourseDetailsScreen(
+                                courseName: course,
+                                courseDescription: details['description'],
+                                topics: List<String>.from(details['topics']),
+                              ),
+                            );
+                          },
+                          child: Card(
+                            elevation: 2,
+                            color: Theme.of(context).cardColor,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              side: BorderSide(
+                                color: Theme.of(context).dividerColor,
+                                width: 0.3,
+                              ),
                             ),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                _getIconForCourse(courses[index]),
-                                size: 40,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                courses[index],
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                            ],
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  _getIconForCourse(courses[index]),
+                                  size: 40,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  courses[index],
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
@@ -233,5 +175,100 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // Search Box
+  Widget buildSearchBar(BuildContext context) {
+    return TextField(
+      decoration: InputDecoration(
+        hintText: 'Search for courses...',
+        prefixIcon: Icon(
+          Icons.search,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+        ),
+        filled: true,
+        fillColor: Theme.of(context).colorScheme.surfaceContainerLow,
+      ),
+    );
+  }
+
+  // Course Progress Card
+  Widget buildProgressCard(
+    ThemeController themeController,
+    HomeScreenController homeScreenController,
+    BuildContext context,
+    String enrolledCourse,
+    String enrollmentDate,
+  ) {
+    return Obx(() {
+      final isDarkMode = themeController.isDarkMode.value;
+      final progress = homeScreenController.courseProgress.value;
+
+      return Card(
+        elevation: 3,
+        color: isDarkMode
+            ? Theme.of(context).colorScheme.surfaceContainerHighest
+            : Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 80,
+                height: 80,
+                child: GradientCircularProgressIndicator(
+                  progress: progress, // now in 0–100 range
+                  strokeWidth: 8,
+                  backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                  child: Center(
+                    child: Text(
+                      '${progress.toStringAsFixed(1)}%',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Enrolled in:',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    Text(
+                      enrolledCourse,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'on $enrollmentDate',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 }
