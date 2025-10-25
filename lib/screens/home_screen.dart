@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skillorbit/controllers/home_screen_controller.dart';
 import 'package:skillorbit/controllers/theme_controller.dart';
+import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/screens/course_details_screen.dart';
 import 'package:skillorbit/services/demo_course_details_json_data.dart';
 import 'package:skillorbit/widgets/gradient_circular_progress_indicator_widget.dart';
@@ -47,16 +48,15 @@ class HomeScreen extends StatelessWidget {
     ];
 
     // Course details data
-    final Map<String, Map<String, dynamic>> courseDetails = CourseDetailsJsonData().courseDetails;
+    final Map<String, Map<String, dynamic>> courseDetails =
+        CourseDetailsJsonData().courseDetails;
 
-    const String enrolledCourse = 'Flutter';
-    const String enrollmentDate = '24, July 2024';
     const String userName = "Alex";
 
     final ThemeController themeController = Get.find<ThemeController>();
     final HomeScreenController homeScreenController =
         Get.find<HomeScreenController>();
-    // homeScreenController.courseProgress = 99.9.obs;
+    final CourseController courseController = Get.find<CourseController>();
 
     return TopRoundCornerScreen(
       child: Padding(
@@ -85,14 +85,73 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Progress Card
-                    buildProgressCard(
-                      themeController,
-                      homeScreenController,
-                      context,
-                      enrolledCourse,
-                      enrollmentDate,
-                    ),
+                    // Enrolled Courses Progress Cards - Show all enrolled courses
+                    Obx(() {
+                      if (courseController.enrolledCourses.isEmpty) {
+                        // Show a message when no courses are enrolled instead of a default course
+                        return Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(24.0),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                spreadRadius: 1,
+                                blurRadius: 5,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.school_outlined,
+                                size: 48,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No enrolled courses yet',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Enroll in courses to start your learning journey',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: Colors.grey),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        // Show progress cards for all enrolled courses
+                        return Column(
+                          children: courseController.enrolledCourses.map((
+                            course,
+                          ) {
+                            // Calculate progress for this course (simplified calculation)
+                            // In a real app, this would be based on completed topics/achievements
+                            final progress = _calculateCourseProgress(
+                              course,
+                              courseController,
+                            );
+
+                            return buildProgressCard(
+                              themeController,
+                              homeScreenController,
+                              context,
+                              course.name,
+                              'Recently enrolled', // You might want to store actual enrollment dates
+                              progress: progress, // Pass real progress value
+                            );
+                          }).toList(),
+                        );
+                      }
+                    }),
 
                     const SizedBox(height: 16),
 
@@ -128,11 +187,29 @@ class HomeScreen extends StatelessWidget {
                         final details = courseDetails[course]!;
                         return GestureDetector(
                           onTap: () {
+                            // Extract topics data properly
+                            List<String> topicsList = [];
+                            final topicsData = details['topics'];
+
+                            if (topicsData is List) {
+                              if (topicsData.isNotEmpty &&
+                                  topicsData.first is Map<String, dynamic>) {
+                                // New format with detailed topics
+                                topicsList =
+                                    (topicsData as List<Map<String, dynamic>>)
+                                        .map((topic) => topic['name'] as String)
+                                        .toList();
+                              } else if (topicsData.first is String) {
+                                // Old format with simple string topics
+                                topicsList = List<String>.from(topicsData);
+                              }
+                            }
+
                             Get.to(
                               () => CourseDetailsScreen(
                                 courseName: course,
                                 courseDescription: details['description'],
-                                topics: List<String>.from(details['topics']),
+                                topics: topicsList,
                               ),
                             );
                           },
@@ -177,6 +254,24 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  // Helper method to calculate course progress
+  double _calculateCourseProgress(
+    Course course,
+    CourseController courseController,
+  ) {
+    // Count achievements for this course
+    final courseAchievements = courseController.achievements
+        .where((achievement) => achievement.courseName == course.name)
+        .length;
+
+    // Calculate progress based on completed topics vs total topics
+    if (course.topics.isEmpty) return 0.0;
+
+    // Progress is based on achievements earned for this course
+    final progress = (courseAchievements / course.topics.length) * 100;
+    return progress.clamp(0.0, 100.0);
+  }
+
   // Search Box
   Widget buildSearchBar(BuildContext context) {
     return TextField(
@@ -202,17 +297,18 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Course Progress Card
+  // Updated Course Progress Card to accept progress parameter
   Widget buildProgressCard(
     ThemeController themeController,
     HomeScreenController homeScreenController,
     BuildContext context,
     String enrolledCourse,
-    String enrollmentDate,
-  ) {
+    String enrollmentDate, {
+    double progress = 80.5, // Default progress value
+  }) {
     return Obx(() {
       final isDarkMode = themeController.isDarkMode.value;
-      final progress = homeScreenController.courseProgress.value;
+      final progressInt = progress.toInt();
 
       return Card(
         elevation: 3,
@@ -228,12 +324,14 @@ class HomeScreen extends StatelessWidget {
                 width: 80,
                 height: 80,
                 child: GradientCircularProgressIndicator(
-                  progress: progress, // now in 0–100 range
+                  progress: progress, // Use passed progress value
                   strokeWidth: 8,
-                  backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest,
                   child: Center(
                     child: Text(
-                      '${progress.toStringAsFixed(1)}%',
+                      '$progressInt%',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,

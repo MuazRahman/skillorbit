@@ -4,6 +4,7 @@ import 'package:skillorbit/controllers/dashboard_controller.dart';
 import 'package:skillorbit/controllers/theme_controller.dart';
 import 'package:skillorbit/screens/home_screen.dart';
 import 'package:skillorbit/screens/my_course_screen.dart';
+import 'package:skillorbit/screens/profile_screen.dart';
 import 'package:skillorbit/widgets/app_bar_widget.dart';
 import 'package:skillorbit/widgets/top_round_corner_widget.dart';
 
@@ -15,8 +16,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-
-
   final ThemeController _themeController = Get.find<ThemeController>();
   final DashBoardController _dashBoardController =
       Get.find<DashBoardController>();
@@ -25,7 +24,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     const HomeScreen(),
     const MyCourseScreen(),
     Center(child: Text('AI Assistant')),
-    Center(child: Text('Profile')),
+    ProfileScreen(),
   ];
 
   @override

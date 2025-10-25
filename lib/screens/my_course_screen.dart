@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
+import 'package:skillorbit/screens/enrolled_course_screen.dart';
 
 class MyCourseScreen extends StatefulWidget {
   const MyCourseScreen({super.key});
@@ -82,34 +83,41 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
                         final course = courseController.enrolledCourses[index];
                         return Stack(
                           children: [
-                            Card(
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Container(
-                                height:
-                                    cardWidth, // Make height equal to width for square shape
-                                width: cardWidth,
-                                padding: const EdgeInsets.all(12.0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      course.icon,
-                                      style: const TextStyle(fontSize: 40),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      course.name,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.titleMedium,
-                                      textAlign: TextAlign.center,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
+                            GestureDetector(
+                              onTap: () {
+                                Get.to(
+                                  () => EnrolledCourseScreen(course: course),
+                                );
+                              },
+                              child: Card(
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Container(
+                                  height:
+                                      cardWidth, // Make height equal to width for square shape
+                                  width: cardWidth,
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        course.icon,
+                                        style: const TextStyle(fontSize: 40),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        course.name,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleMedium,
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
