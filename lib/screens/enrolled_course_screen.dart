@@ -559,18 +559,8 @@ class _SubtopicQuizScreenState extends State<SubtopicQuizScreen> {
         snackPosition: SnackPosition.BOTTOM,
       );
 
-      // Navigate back to the previous screen safely
-      if (Get.isDialogOpen ?? false) {
-        Get.back();
-      }
-
-      // Use a try-catch approach for navigation
-      try {
-        Get.back();
-      } catch (e) {
-        // If we can't go back, navigate to the dashboard
-        Get.offAllNamed('/dashboard');
-      }
+      // Don't navigate away immediately, let the user see the snackbar
+      // The snackbar will be visible on the current page
     } catch (e) {
       // Show error message
       Get.snackbar(
@@ -1060,18 +1050,8 @@ class _QuizScreenState extends State<QuizScreen> {
         snackPosition: SnackPosition.BOTTOM,
       );
 
-      // Navigate back to the previous screen safely
-      if (Get.isDialogOpen ?? false) {
-        Get.back();
-      }
-
-      // Use a try-catch approach for navigation
-      try {
-        Get.back();
-      } catch (e) {
-        // If we can't go back, navigate to the dashboard
-        Get.offAllNamed('/dashboard');
-      }
+      // Don't navigate away immediately, let the user see the snackbar
+      // The snackbar will be visible on the current page
     } catch (e) {
       // Show error message
       Get.snackbar(
