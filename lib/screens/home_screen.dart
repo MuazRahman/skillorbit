@@ -156,7 +156,7 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     // Search Bar
-                    buildSearchBar(context),
+                    // buildSearchBar(context),
 
                     const SizedBox(height: 16),
 
@@ -205,6 +205,7 @@ class HomeScreen extends StatelessWidget {
                               }
                             }
 
+                            // Navigate to Course Details Screen
                             Get.to(
                               () => CourseDetailsScreen(
                                 courseName: course,
@@ -273,29 +274,29 @@ class HomeScreen extends StatelessWidget {
   }
 
   // Search Box
-  Widget buildSearchBar(BuildContext context) {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: 'Search for courses...',
-        prefixIcon: Icon(
-          Icons.search,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-        ),
-        filled: true,
-        fillColor: Theme.of(context).colorScheme.surfaceContainerLow,
-      ),
-    );
-  }
+  // Widget buildSearchBar(BuildContext context) {
+  //   return TextField(
+  //     decoration: InputDecoration(
+  //       hintText: 'Search for courses...',
+  //       prefixIcon: Icon(
+  //         Icons.search,
+  //         color: Theme.of(context).colorScheme.primary,
+  //       ),
+  //       enabledBorder: OutlineInputBorder(
+  //         borderRadius: BorderRadius.circular(12),
+  //         borderSide: BorderSide(
+  //           color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
+  //         ),
+  //       ),
+  //       focusedBorder: OutlineInputBorder(
+  //         borderRadius: BorderRadius.circular(12),
+  //         borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+  //       ),
+  //       filled: true,
+  //       fillColor: Theme.of(context).colorScheme.surfaceContainerLow,
+  //     ),
+  //   );
+  // }
 
   // Updated Course Progress Card to accept progress parameter
   Widget buildProgressCard(

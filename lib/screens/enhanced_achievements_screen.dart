@@ -83,7 +83,7 @@ class EnhancedAchievementsScreen extends StatelessWidget {
               // Achievements timeline
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: _buildAchievementsTimeline(context),
+                child: Center(child: _buildAchievementsTimeline(context)),
               ),
 
               const SizedBox(height: 32),

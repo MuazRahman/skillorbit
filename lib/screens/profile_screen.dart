@@ -139,6 +139,7 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   Obx(
                     () => Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         _buildEnhancedStatCard(
                           context,
@@ -193,43 +194,45 @@ class ProfileScreen extends StatelessWidget {
 
                   Obx(() {
                     if (courseController.achievements.isEmpty) {
-                      return Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
-                              spreadRadius: 1,
-                              blurRadius: 5,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: const Column(
-                          children: [
-                            Icon(
-                              Icons.emoji_events_outlined,
-                              size: 48,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'No achievements yet',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                      return Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                spreadRadius: 1,
+                                blurRadius: 5,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Column(
+                            children: [
+                              Icon(
+                                Icons.emoji_events_outlined,
+                                size: 48,
                                 color: Colors.grey,
                               ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Complete quizzes to earn achievements',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ],
+                              SizedBox(height: 16),
+                              Text(
+                                'No achievements yet',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Complete quizzes to earn achievements',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     }

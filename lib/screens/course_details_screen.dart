@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
+import 'package:skillorbit/core/app_color.dart';
 import 'package:skillorbit/screens/enrolled_course_screen.dart';
 import 'package:skillorbit/services/demo_course_details_json_data.dart';
 
@@ -76,11 +77,11 @@ class CourseDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     'Master this technology',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white,
                     ),
                   ),
                 ],
@@ -109,10 +110,10 @@ class CourseDetailsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withOpacity(0.2),
                           spreadRadius: 1,
                           blurRadius: 5,
-                          offset: const Offset(0, 2),
+                          offset: const Offset(2, 2),
                         ),
                       ],
                     ),
@@ -160,10 +161,10 @@ class CourseDetailsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
+                              color: Colors.grey.withOpacity(0.2),
                               spreadRadius: 1,
                               blurRadius: 3,
-                              offset: const Offset(0, 1),
+                              offset: const Offset(2, 2),
                             ),
                           ],
                         ),
@@ -328,6 +329,7 @@ class CourseDetailsScreen extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(color: AppColor.lightPrimary.withAlpha(150))
                     ),
                     textStyle: const TextStyle(
                       fontSize: 18,
@@ -336,7 +338,7 @@ class CourseDetailsScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     elevation: 1,
                   ),
-                  child: const Text('Enroll Now'),
+                  child: const Text('Enroll Now', style: TextStyle(fontSize: 20)),
                 ),
               ),
             ),

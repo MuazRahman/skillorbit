@@ -23,7 +23,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<Widget> pages = [
     const HomeScreen(),
     const MyCourseScreen(),
-    Center(child: Text('AI Assistant')),
+    // Center(child: Text('AI Assistant')),
     ProfileScreen(),
   ];
 
@@ -51,7 +51,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         selectedIndex: _dashBoardController.currentPageIndex.value,
         onDestinationSelected: (index) {
           _dashBoardController.currentPageIndex.value = index;
-          // setState(() => _currentPageIndex = index);
         },
         destinations: const [
           NavigationDestination(
@@ -60,10 +59,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
             label: 'Home',
           ),
           NavigationDestination(icon: Icon(Icons.book), label: 'My Course'),
-          NavigationDestination(
-            icon: Icon(Icons.rocket_launch),
-            label: 'AI Assistant',
-          ),
           NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
         ],
       );

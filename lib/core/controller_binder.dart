@@ -7,9 +7,9 @@ import 'package:skillorbit/controllers/theme_controller.dart';
 class ControllerBinder extends Bindings {
   @override
   void dependencies() {
-    Get.put(ThemeController());
-    Get.put(DashBoardController());
-    Get.put(HomeScreenController());
-    Get.put(CourseController());
+    Get.lazyPut(() => ThemeController());
+    Get.lazyPut(() =>DashBoardController());
+    Get.lazyPut(() =>HomeScreenController());
+    Get.lazyPut(() => CourseController());
   }
 }
