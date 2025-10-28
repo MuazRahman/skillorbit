@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/controllers/theme_controller.dart';
+import 'package:skillorbit/models/course_model.dart';
 import 'package:skillorbit/widgets/app_bar_widget.dart';
 
 class EnrolledCourseScreen extends StatefulWidget {

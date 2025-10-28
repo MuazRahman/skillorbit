@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
+import 'package:skillorbit/models/course_model.dart';
 import 'package:skillorbit/widgets/gradient_circular_progress_indicator_widget.dart';
 
 class EnhancedAchievementsScreen extends StatelessWidget {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/screens/enrolled_course_screen.dart';
 
@@ -102,9 +103,33 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Text(
-                                        course.icon,
-                                        style: const TextStyle(fontSize: 40),
+                                      // Display course icon as an image
+                                      Expanded(
+                                        child: course.icon.isNotEmpty
+                                            ? (course.icon.contains('.svg')
+                                                  ? SvgPicture.asset(
+                                                      course.icon,
+                                                      fit: BoxFit.contain,
+                                                    )
+                                                  : course.icon.contains('.png')
+                                                  ? Image.asset(
+                                                      course.icon,
+                                                      fit: BoxFit.contain,
+                                                    )
+                                                  : Icon(
+                                                      Icons.school,
+                                                      size: 40,
+                                                      color: Theme.of(
+                                                        context,
+                                                      ).colorScheme.primary,
+                                                    ))
+                                            : Icon(
+                                                Icons.school,
+                                                size: 40,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.primary,
+                                              ),
                                       ),
                                       const SizedBox(height: 12),
                                       Text(

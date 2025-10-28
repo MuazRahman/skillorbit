@@ -26,6 +26,9 @@ dependencies:
   # Add Firestore (Cloud Firestore Database)
   cloud_firestore: ^5.5.0
 
+  # SVG Image Support
+  flutter_svg: ^2.0.0+1
+
   # (Optional but recommended if you plan to use login system)
   # firebase_auth: ^5.3.3
 
@@ -37,3 +40,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+assets:
+  - lib/core/assets/images

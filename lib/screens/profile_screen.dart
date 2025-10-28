@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/controllers/dashboard_controller.dart';
+import 'package:skillorbit/models/course_model.dart';
 import 'package:skillorbit/screens/enhanced_achievements_screen.dart';
-import 'package:skillorbit/screens/my_course_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final CourseController courseController = Get.find<CourseController>();
