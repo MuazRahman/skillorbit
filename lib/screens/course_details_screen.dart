@@ -61,7 +61,7 @@ class CourseDetailsScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: SizedBox(
@@ -72,16 +72,31 @@ class CourseDetailsScreen extends StatelessWidget {
                                 ? SvgPicture.asset(
                                     course.icon,
                                     fit: BoxFit.contain,
+                                    placeholderBuilder: (context) => Icon(
+                                      _getIconForCourse(courseName),
+                                      size: 80,
+                                      color: Colors.white,
+                                    ),
                                   )
                                 : course.icon.contains('.png')
-                                ? Image.asset(course.icon, fit: BoxFit.contain)
-                                : Text(
+                                ? Image.asset(
+                                    course.icon, 
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) => Icon(
+                                      _getIconForCourse(courseName),
+                                      size: 80,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Icon(
                                     _getIconForCourse(courseName),
-                                    style: const TextStyle(fontSize: 48),
+                                    size: 80,
+                                    color: Colors.white,
                                   ))
-                          : Text(
+                          : Icon(
                               _getIconForCourse(courseName),
-                              style: const TextStyle(fontSize: 48),
+                              size: 80,
+                              color: Colors.white,
                             ),
                     ),
                   ),
@@ -125,7 +140,7 @@ class CourseDetailsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
+                          color: Colors.grey.withValues(alpha: 0.2),
                           spreadRadius: 1,
                           blurRadius: 5,
                           offset: const Offset(2, 2),
@@ -176,7 +191,7 @@ class CourseDetailsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.grey.withOpacity(0.2),
+                              color: Colors.grey.withValues(alpha: 0.2),
                               spreadRadius: 1,
                               blurRadius: 3,
                               offset: const Offset(2, 2),
@@ -280,30 +295,29 @@ class CourseDetailsScreen extends StatelessWidget {
     );
   }
 
-  String _getIconForCourse(String courseName) {
+  IconData _getIconForCourse(String courseName) {
     switch (courseName.toLowerCase()) {
       case 'flutter':
-        return '📱';
+        return Icons.phone_android;
       case 'c':
-        return '💻';
       case 'c++':
-        return '⚡';
+        return Icons.code_sharp;
       case 'java':
-        return '☕';
+        return Icons.coffee_outlined;
       case 'database':
-        return '🗄️';
+        return Icons.storage_rounded;
       case 'mysql':
-        return '🐬';
+        return Icons.dns_outlined;
       case 'html':
-        return '🌐';
+        return Icons.web_asset;
       case 'python':
-        return '🐍';
+        return Icons.code;
       case 'react':
-        return '⚛️';
+        return Icons.web;
       case 'dart':
-        return '🎯';
+        return Icons.arrow_forward;
       default:
-        return '📚';
+        return Icons.school_outlined;
     }
   }
 }

@@ -288,11 +288,21 @@ class HomeScreen extends StatelessWidget {
                                   ? SvgPicture.asset(
                                       course.icon,
                                       fit: BoxFit.contain,
+                                      placeholderBuilder: (context) => Icon(
+                                        _getIconForCourse(course.name),
+                                        size: 40,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
                                     )
                                   : course.icon.contains('.png')
                                   ? Image.asset(
                                       course.icon,
                                       fit: BoxFit.contain,
+                                      errorBuilder: (context, error, stackTrace) => Icon(
+                                        _getIconForCourse(course.name),
+                                        size: 40,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
                                     )
                                   : Icon(
                                       _getIconForCourse(course.name),

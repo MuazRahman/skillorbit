@@ -110,11 +110,21 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
                                                   ? SvgPicture.asset(
                                                       course.icon,
                                                       fit: BoxFit.contain,
+                                                      placeholderBuilder: (context) => Icon(
+                                                        Icons.school,
+                                                        size: 40,
+                                                        color: Theme.of(context).colorScheme.primary,
+                                                      ),
                                                     )
                                                   : course.icon.contains('.png')
                                                   ? Image.asset(
                                                       course.icon,
                                                       fit: BoxFit.contain,
+                                                      errorBuilder: (context, error, stackTrace) => Icon(
+                                                        Icons.school,
+                                                        size: 40,
+                                                        color: Theme.of(context).colorScheme.primary,
+                                                      ),
                                                     )
                                                   : Icon(
                                                       Icons.school,

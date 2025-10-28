@@ -66,13 +66,15 @@ class CourseController extends GetxController {
             print(
               'Loaded ${topics.length} topics for course: ${courseModel.name}',
             );
+            final iconPath = getCourseIcon(courseModel.name);
+            print('Setting icon for course ${courseModel.name}: $iconPath');
             courses.add(
               Course(
                 id: courseModel.id,
                 name: courseModel.name,
                 description: courseModel.description,
                 topics: topics,
-                icon: getCourseIcon(courseModel.name),
+                icon: iconPath,
                 hasDetailedTopics: courseModel.hasDetailedTopics,
                 topicNames: courseModel.topicNames,
               ),
@@ -90,13 +92,15 @@ class CourseController extends GetxController {
               'Loaded ${topicNames.length} topic names for course: ${courseModel.name}',
             );
             print('Topic names: $topicNames');
+            final iconPath = getCourseIcon(courseModel.name);
+            print('Setting icon for course ${courseModel.name}: $iconPath');
             courses.add(
               Course(
                 id: courseModel.id,
                 name: courseModel.name,
                 description: courseModel.description,
                 topics: [], // Will be populated when needed
-                icon: getCourseIcon(courseModel.name),
+                icon: iconPath,
                 hasDetailedTopics: courseModel.hasDetailedTopics,
                 topicNames: topicNames,
               ),
@@ -133,27 +137,27 @@ class CourseController extends GetxController {
     switch (courseName.toLowerCase()) {
       case 'flutter':
         // Return SVG icon
-        return 'lib/core/assets/images/flutter-svg.svg';
+        return 'assets/images/flutter-svg.svg';
       case 'c':
-        return 'lib/core/assets/images/c_svg.svg';
+        return 'assets/images/c_svg.svg';
       case 'c++':
-        return 'lib/core/assets/images/c++_svg.svg';
+        return 'assets/images/c++_svg.svg';
       case 'java':
-        return 'lib/core/assets/images/java_svg.svg';
+        return 'assets/images/java_svg.svg';
       case 'database':
-        return 'lib/core/assets/images/database_svg.svg';
+        return 'assets/images/database_svg.svg';
       case 'mysql':
-        return 'lib/core/assets/images/mysql_svg.svg';
+        return 'assets/images/mysql_svg.svg';
       case 'html':
-        return 'lib/core/assets/images/html_svg.svg';
+        return 'assets/images/html_svg.svg';
       case 'python':
-        return 'lib/core/assets/images/python_svg.svg';
+        return 'assets/images/python_svg.svg';
       case 'dart':
-        return 'lib/core/assets/images/dart_svg.svg';
+        return 'assets/images/dart_svg.svg';
       case 'react':
-        return 'lib/core/assets/images/react-svg.svg';
+        return 'assets/images/react-svg.svg';
       default:
-        return 'lib/core/assets/images/default_course_icon.png';
+        return 'assets/images/flutter-svg.svg'; // Use flutter icon as default
     }
   }
 
