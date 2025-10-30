@@ -11,26 +11,9 @@ import 'package:skillorbit/screens/course_details_screen.dart';
 import 'package:skillorbit/widgets/gradient_circular_progress_indicator_widget.dart';
 import 'package:skillorbit/widgets/top_round_corner_widget.dart';
 
-/// Main home screen widget that displays the user dashboard
-///
-/// This widget shows:
-/// - User welcome message
-/// - Enrolled course progress
-/// - Available courses for enrollment
-///
-/// It uses GetX for state management and follows the MVC pattern
-/// by delegating data operations to controllers.
 class HomeScreen extends StatelessWidget {
-  /// Creates a HomeScreen widget
-  ///
-  /// [key] - Optional widget key
   const HomeScreen({super.key});
 
-  /// Gets the appropriate icon for a course based on its name
-  ///
-  /// Returns a Material icon that represents the course subject.
-  ///
-  /// [courseName] - Name of the course to get an icon for
   IconData _getIconForCourse(String courseName) {
     switch (courseName.toLowerCase()) {
       case 'flutter':
@@ -51,14 +34,6 @@ class HomeScreen extends StatelessWidget {
     }
   }
 
-  /// Builds the main UI of the home screen
-  ///
-  /// This method constructs the complete home screen UI including:
-  /// - Header with welcome message
-  /// - Enrolled course progress cards
-  /// - Grid of available courses
-  ///
-  /// [context] - Build context for the widget
   @override
   Widget build(BuildContext context) {
     // Default user name (in a real app, this would come from user data)
@@ -129,7 +104,7 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     // Grid of available courses
-                    _buildAvailableCoursesGrid(context, courseController),
+                    _buildAvailableCoursesSection(context, courseController),
                   ],
                 ),
               ),
@@ -140,9 +115,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  /// Builds the message displayed when no courses are enrolled
-  ///
-  /// [context] - Build context for the widget
   Widget _buildNoCoursesMessage(BuildContext context) {
     return Container(
       width: double.infinity,
@@ -186,12 +158,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  /// Builds progress cards for all enrolled courses
-  ///
-  /// [context] - Build context for the widget
-  /// [courseController] - Controller managing course data
-  /// [themeController] - Controller managing theme settings
-  /// [homeScreenController] - Controller managing home screen state
   Widget _buildEnrolledCoursesProgress(
     BuildContext context,
     CourseController courseController,
@@ -216,10 +182,85 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  /// Builds the grid of available courses
-  ///
-  /// [context] - Build context for the widget
-  /// [courseController] - Controller managing course data
+  Widget _buildAvailableCoursesSection(
+    BuildContext context,
+    CourseController courseController,
+  ) {
+    return Obx(() {
+      // Show loading indicator if courses are still being loaded
+      if (courseController.isCoursesLoading.value) {
+        return _buildCoursesLoadingIndicator(context);
+      }
+
+      // Show courses grid when loading is complete
+      return _buildAvailableCoursesGrid(context, courseController);
+    });
+  }
+
+  Widget _buildCoursesLoadingIndicator(BuildContext context) {
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Enhanced loading animation
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              ),
+              child: Center(
+                child: SizedBox(
+                  width: 30,
+                  height: 30,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Enhanced text with better styling
+            Text(
+              'Loading courses',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Preparing your learning journey...',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+              ),
+            ),
+            // Animated dots
+            const SizedBox(height: 16),
+            const _AnimatedDots(),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildAvailableCoursesGrid(
     BuildContext context,
     CourseController courseController,
@@ -291,18 +332,23 @@ class HomeScreen extends StatelessWidget {
                                       placeholderBuilder: (context) => Icon(
                                         _getIconForCourse(course.name),
                                         size: 40,
-                                        color: Theme.of(context).colorScheme.primary,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
                                       ),
                                     )
                                   : course.icon.contains('.png')
                                   ? Image.asset(
                                       course.icon,
                                       fit: BoxFit.contain,
-                                      errorBuilder: (context, error, stackTrace) => Icon(
-                                        _getIconForCourse(course.name),
-                                        size: 40,
-                                        color: Theme.of(context).colorScheme.primary,
-                                      ),
+                                      errorBuilder:
+                                          (context, error, stackTrace) => Icon(
+                                            _getIconForCourse(course.name),
+                                            size: 40,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
+                                          ),
                                     )
                                   : Icon(
                                       _getIconForCourse(course.name),
@@ -488,5 +534,77 @@ class HomeScreen extends StatelessWidget {
         ),
       );
     });
+  }
+}
+
+// Animated dots widget for loading indicator
+class _AnimatedDots extends StatefulWidget {
+  const _AnimatedDots();
+
+  @override
+  State<_AnimatedDots> createState() => _AnimatedDotsState();
+}
+
+class _AnimatedDotsState extends State<_AnimatedDots>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _controller.repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _animation,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

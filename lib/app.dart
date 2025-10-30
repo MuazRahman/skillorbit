@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skillorbit/controllers/theme_controller.dart';
-import 'package:skillorbit/core/app_routes.dart';
 import 'package:skillorbit/core/app_theme.dart';
 import 'package:skillorbit/core/controller_binder.dart';
+import 'package:skillorbit/screens/splash_screen.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -25,7 +25,7 @@ class _AppState extends State<App> {
         theme: themeController.isDarkMode.value
             ? AppTheme.darkTheme
             : AppTheme.lightTheme,
-        home: AppRoute.goToDashboardScreen(),
+        home: const SplashScreen(), // Start with splash screen
       ),
     );
   }

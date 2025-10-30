@@ -16,6 +16,9 @@ class CourseController extends GetxController {
   /// This list contains all courses from Firestore, regardless of enrollment status
   var availableCourses = <Course>[].obs;
 
+  /// Loading state for courses
+  var isCoursesLoading = false.obs;
+
   /// List of user achievements
   /// Tracks completed topics and subtopics
   var achievements = <Achievement>[].obs;
@@ -23,16 +26,15 @@ class CourseController extends GetxController {
   /// Service for interacting with Firestore database
   final FirestoreCourseService _firestoreService = FirestoreCourseService();
 
-  /// Initializes the controller and loads course data
+  /// Initializes the controller
   ///
   /// This method is automatically called when the controller is created.
-  /// It fetches all course data from Firestore and populates the availableCourses list.
-  /// The enrolledCourses list starts empty and gets populated when user enrolls.
+  /// We don't load courses here anymore as it's handled by the splash screen.
   @override
   void onInit() {
     super.onInit();
     print('CourseController initialized');
-    loadCoursesFromFirestore();
+    // Course loading is now handled by the splash screen
   }
 
   /// Loads all courses from Firestore database
@@ -43,6 +45,7 @@ class CourseController extends GetxController {
   /// Courses are stored in availableCourses list, not enrolledCourses.
   Future<void> loadCoursesFromFirestore() async {
     try {
+      isCoursesLoading.value = true;
       print('Loading courses from Firestore...');
       final coursesSnapshot = await _firestoreService.getAllCourses().first;
       print('Received ${coursesSnapshot.docs.length} courses from Firestore');
@@ -124,6 +127,8 @@ class CourseController extends GetxController {
       print('Error loading courses from Firestore: $e');
       // Print stack trace for better debugging
       print('Stack trace: ${StackTrace.current}');
+    } finally {
+      isCoursesLoading.value = false;
     }
   }
 
