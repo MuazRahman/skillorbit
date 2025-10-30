@@ -25,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _initializeAnimations() {
     _animationController = AnimationController(
-      duration: const Duration(seconds: 4),
+      duration: const Duration(seconds: 2),
       vsync: this,
     );
 
@@ -33,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
     );
 
@@ -48,8 +48,8 @@ class _SplashScreenState extends State<SplashScreen>
       // Start loading courses asynchronously (non-blocking)
       courseController.loadCoursesFromFirestore();
 
-      // Wait for 2 seconds to show the splash screen
-      await Future.delayed(const Duration(seconds: 2));
+      // Wait for 4 seconds to show the splash screen
+      await Future.delayed(const Duration(seconds: 4));
 
       // Navigate to the dashboard screen (which will show the home screen by default)
       if (mounted) {
@@ -87,55 +87,66 @@ class _SplashScreenState extends State<SplashScreen>
                 child: FadeTransition(
                   opacity: _fadeAnimation,
                   child: Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(30),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.green.shade100,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 15,
-                          offset: const Offset(0, 5),
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
-                    child: Icon(
-                      Icons.auto_graph,
-                      size: 80,
-                      color: const Color(0xFF4CAF50), // Green icon
+                    child: ClipOval(
+                      child: Image.asset(
+                        "assets/logo/app_logo.png",
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 50),
               // App name with modern typography
               FadeTransition(
                 opacity: _fadeAnimation,
                 child: Text(
                   'Skill Orbit',
                   style: TextStyle(
-                    fontSize: 36,
+                    fontSize: 42,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
-                    letterSpacing: 1.2,
+                    letterSpacing: 1.5,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withOpacity(0.3),
+                        offset: const Offset(0, 2),
+                        blurRadius: 4,
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 15),
               // Subtitle/motto
               FadeTransition(
                 opacity: _fadeAnimation,
                 child: Text(
                   'Learn. Grow. Succeed.',
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white.withOpacity(0.9),
-                    letterSpacing: 2,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w300,
+                    color: Colors.white.withOpacity(0.95),
+                    letterSpacing: 2.5,
                   ),
                 ),
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 60),
               // Modern animated progress bar
               FadeTransition(
                 opacity: _fadeAnimation,
@@ -158,14 +169,14 @@ class _ModernProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 200,
-      height: 6,
+      width: 220,
+      height: 8,
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(3),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(3),
+        borderRadius: BorderRadius.circular(4),
         child: AnimatedBuilder(
           animation: animation,
           builder: (context, child) {
@@ -181,33 +192,66 @@ class _ModernProgressBar extends StatelessWidget {
                         color: Colors.white.withOpacity(0.2),
                       ),
                     ),
-                    // Animated progress
-                    Container(
+                    // Animated progress with gradient and pulse effect
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
                       width: constraints.maxWidth * animation.value,
                       height: constraints.maxHeight,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Colors.white, Colors.white.withOpacity(0.7)],
+                          colors: [
+                            Colors.white,
+                            Colors.white.withOpacity(0.9),
+                            Colors.white.withOpacity(0.7),
+                          ],
+                          stops: const [0.0, 0.7, 1.0],
                         ),
-                        borderRadius: BorderRadius.circular(3),
+                        borderRadius: BorderRadius.circular(4),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.white.withOpacity(0.4),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
                       ),
                     ),
-                    // Shimmer effect
+                    // Shimmer effect with enhanced animation
                     Positioned(
-                      left: (constraints.maxWidth * animation.value) - 20,
+                      left: (constraints.maxWidth * animation.value) - 30,
                       child: Container(
-                        width: 40,
+                        width: 60,
                         height: constraints.maxHeight,
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
                               Colors.white.withOpacity(0),
-                              Colors.white.withOpacity(0.5),
+                              Colors.white.withOpacity(0.8),
                               Colors.white.withOpacity(0),
                             ],
                             begin: Alignment.centerLeft,
                             end: Alignment.centerRight,
                           ),
+                        ),
+                      ),
+                    ),
+                    // Secondary pulse indicator
+                    Positioned(
+                      left: (constraints.maxWidth * animation.value) - 8,
+                      child: Container(
+                        width: 16,
+                        height: constraints.maxHeight + 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.white.withOpacity(0.6),
+                              blurRadius: 12,
+                              spreadRadius: 2,
+                            ),
+                          ],
                         ),
                       ),
                     ),

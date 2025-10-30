@@ -2,18 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:skillorbit/controllers/theme_controller.dart';
+import 'package:skillorbit/core/app_color.dart';
 
 class AppBarWidget {
   static PreferredSizeWidget buildAppBar(ThemeController themeController) {
     return AppBar(
       elevation: 0,
-      title: Text(
-        'Skill Orbit',
-        style: GoogleFonts.varelaRound(
-          fontSize: 28,
-          fontWeight: FontWeight.w600,
-        ),
+      title: Row(
+        spacing: 8,
+        children: [
+          const CircleAvatar(
+            maxRadius: 17,
+              foregroundImage: AssetImage("assets/logo/app_logo.png"),
+          ),
+          Text(
+            'Skill Orbit',
+            style: GoogleFonts.varelaRound(
+              fontSize: 28,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
+      // Text(
+      //   'Skill Orbit',
+      //   style: GoogleFonts.varelaRound(
+      //     fontSize: 28,
+      //     fontWeight: FontWeight.w600,
+      //   ),
+      // ),
       actions: [
         Obx(() {
           return IconButton(
