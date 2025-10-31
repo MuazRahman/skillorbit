@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/screens/enrolled_course_screen.dart';
+import 'package:skillorbit/widgets/top_round_corner_widget.dart';
 
 class MyCourseScreen extends StatefulWidget {
   const MyCourseScreen({super.key});
@@ -18,8 +19,8 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
   Widget build(BuildContext context) {
     final courseController = Get.find<CourseController>();
 
-    return Scaffold(
-      body: Obx(() {
+    return TopRoundCornerScreen(
+      child: Obx(() {
         if (courseController.enrolledCourses.isEmpty) {
           return const Center(
             child: Column(
@@ -110,21 +111,37 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
                                                   ? SvgPicture.asset(
                                                       course.icon,
                                                       fit: BoxFit.contain,
-                                                      placeholderBuilder: (context) => Icon(
-                                                        Icons.school,
-                                                        size: 40,
-                                                        color: Theme.of(context).colorScheme.primary,
-                                                      ),
+                                                      placeholderBuilder:
+                                                          (context) => Icon(
+                                                            Icons.school,
+                                                            size: 40,
+                                                            color:
+                                                                Theme.of(
+                                                                      context,
+                                                                    )
+                                                                    .colorScheme
+                                                                    .primary,
+                                                          ),
                                                     )
                                                   : course.icon.contains('.png')
                                                   ? Image.asset(
                                                       course.icon,
                                                       fit: BoxFit.contain,
-                                                      errorBuilder: (context, error, stackTrace) => Icon(
-                                                        Icons.school,
-                                                        size: 40,
-                                                        color: Theme.of(context).colorScheme.primary,
-                                                      ),
+                                                      errorBuilder:
+                                                          (
+                                                            context,
+                                                            error,
+                                                            stackTrace,
+                                                          ) => Icon(
+                                                            Icons.school,
+                                                            size: 40,
+                                                            color:
+                                                                Theme.of(
+                                                                      context,
+                                                                    )
+                                                                    .colorScheme
+                                                                    .primary,
+                                                          ),
                                                     )
                                                   : Icon(
                                                       Icons.school,

@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:skillorbit/core/asset_path.dart';
 import '../services/firestore_course_service.dart';
 import '../models/course_model.dart';
 
@@ -142,27 +143,38 @@ class CourseController extends GetxController {
     switch (courseName.toLowerCase()) {
       case 'flutter':
         // Return SVG icon
-        return 'assets/images/flutter-svg.svg';
+        return AssetsPath.flutterIconSvg;
+        // return 'assets/images/flutter-svg.svg';
       case 'c':
-        return 'assets/images/c_svg.svg';
+        return AssetsPath.cIconSvg;
+        // return 'assets/images/c_svg.svg';
       case 'c++':
-        return 'assets/images/c++_svg.svg';
+        return AssetsPath.cppIconSvg;
+        // return 'assets/images/c++_svg.svg';
       case 'java':
-        return 'assets/images/java_svg.svg';
+        return AssetsPath.javaIconSvg;
+        // return 'assets/images/java_svg.svg';
       case 'database':
-        return 'assets/images/database_svg.svg';
+        return AssetsPath.javaIconSvg;
+        // return 'assets/images/database_svg.svg';
       case 'mysql':
-        return 'assets/images/mysql_svg.svg';
+        return AssetsPath.mysqlIconSvg;
+        // return 'assets/images/mysql_svg.svg';
       case 'html':
-        return 'assets/images/html_svg.svg';
+        return AssetsPath.htmlIconSvg;
+        // return 'assets/images/html_svg.svg';
       case 'python':
-        return 'assets/images/python_svg.svg';
+        return AssetsPath.pythonIconSvg;
+        // return 'assets/images/python_svg.svg';
       case 'dart':
-        return 'assets/images/dart_svg.svg';
+        return AssetsPath.dartIconSvg;
+        // return 'assets/images/dart_svg.svg';
       case 'react':
-        return 'assets/images/react-svg.svg';
+        return AssetsPath.reactIconSvg;
+        // return 'assets/images/react-svg.svg';
       default:
-        return 'assets/images/flutter-svg.svg'; // Use flutter icon as default
+        return AssetsPath.flutterIconSvg; // Use flutter icon as default
+        // return 'assets/images/flutter-svg.svg';
     }
   }
 
