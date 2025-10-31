@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/controllers/theme_controller.dart';
 import 'package:skillorbit/models/course_model.dart';
@@ -22,7 +23,7 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBarWidget.buildAppBar(themeController),
+      appBar: AppBarWidget.buildAppBar(themeController, context),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,22 +72,19 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
                                   widget.course.icon,
                                   width: 80,
                                   height: 80,
-                                  errorBuilder: (context, error, stackTrace) => Icon(
-                                    Icons.school,
-                                    size: 80,
-                                    color: Colors.white,
-                                  ),
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Icon(
+                                        Icons.school,
+                                        size: 80,
+                                        color: Colors.white,
+                                      ),
                                 )
                               : Icon(
                                   Icons.school,
                                   size: 80,
                                   color: Colors.white,
                                 ))
-                        : Icon(
-                            Icons.school,
-                            size: 80,
-                            color: Colors.white,
-                          ),
+                        : Icon(Icons.school, size: 80, color: Colors.white),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -314,6 +312,31 @@ class SubtopicDetailsScreen extends StatelessWidget {
     required this.courseName,
   });
 
+  Future<void> _launchTutorialUrl(String urlString) async {
+    try {
+      final url = Uri.parse(urlString);
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        Get.snackbar(
+          'Error',
+          'Could not open the tutorial link',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Invalid URL format',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -424,6 +447,7 @@ class SubtopicDetailsScreen extends StatelessWidget {
                           onTap: () {
                             // Open tutorial link
                             // In a real app, you would use url_launcher package
+                            _launchTutorialUrl(subtopic.tutorialLink);
                           },
                           child: Container(
                             padding: const EdgeInsets.all(12),
@@ -925,6 +949,8 @@ class TopicDetailsScreen extends StatelessWidget {
                           onTap: () {
                             // Open tutorial link
                             // In a real app, you would use url_launcher package
+                            launchUrl(Uri.parse(topic.tutorialLink),
+                                mode: LaunchMode.externalApplication);
                           },
                           child: Container(
                             padding: const EdgeInsets.all(12),

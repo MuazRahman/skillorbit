@@ -48,16 +48,17 @@ class _SplashScreenState extends State<SplashScreen>
       // Start loading courses asynchronously (non-blocking)
       courseController.loadCoursesFromFirestore();
 
-      // Wait for 4 seconds to show the splash screen
-      await Future.delayed(const Duration(seconds: 4));
+      // Wait for 3 seconds to show the splash screen
+      await Future.delayed(const Duration(seconds: 3));
 
-      // Navigate to the dashboard screen (which will show the home screen by default)
+      // Always navigate to dashboard - users can browse without login
+      print('Navigating to dashboard...');
       if (mounted) {
         Get.offAll(() => const DashboardScreen());
       }
     } catch (e) {
       print('Error during splash screen: $e');
-      // Even if there's an error, we still navigate to the app
+      // On error, still navigate to dashboard
       if (mounted) {
         Get.offAll(() => const DashboardScreen());
       }

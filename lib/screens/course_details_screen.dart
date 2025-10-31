@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
+import 'package:skillorbit/controllers/auth_controller.dart';
 import 'package:skillorbit/core/app_color.dart';
+import 'package:skillorbit/screens/auth/login_screen.dart';
 
 class CourseDetailsScreen extends StatelessWidget {
   final String courseName;
@@ -18,8 +20,9 @@ class CourseDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get the course controller
+    // Get the controllers
     final courseController = Get.find<CourseController>();
+    final authController = Get.find<AuthController>();
 
     // Find the course to get its icon
     final course = courseController.getCourseByName(courseName);
@@ -226,17 +229,41 @@ class CourseDetailsScreen extends StatelessWidget {
                 height: 60,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Check if course is already enrolled
+                    // First check if user is logged in
+                    if (!authController.isLoggedIn.value) {
+                      // User is not logged in, show snackbar with login button
+                      Get.snackbar(
+                        'Login Required',
+                        'Please login to enroll in courses',
+                        backgroundColor: Colors.orange,
+                        colorText: Colors.white,
+                        duration: const Duration(seconds: 3),
+                        mainButton: TextButton(
+                          onPressed: () {
+                            Get.back(); // Close snackbar
+                            Get.to(() => const LoginScreen());
+                          },
+                          child: const Text(
+                            'Login',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+
+                    // User is logged in, proceed with enrollment check
                     if (courseController.isCourseEnrolled(courseName)) {
                       // Show message that course is already added
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '$courseName is already in your courses!',
-                          ),
-                          backgroundColor: Colors.orange,
-                          duration: const Duration(seconds: 2),
-                        ),
+                      Get.snackbar(
+                        'Already Enrolled',
+                        '$courseName is already in your courses!',
+                        backgroundColor: Colors.orange,
+                        colorText: Colors.white,
+                        duration: const Duration(seconds: 2),
                       );
                     } else {
                       // Find the course in available courses
@@ -249,23 +276,21 @@ class CourseDetailsScreen extends StatelessWidget {
                         courseController.enrollCourse(course);
 
                         // Show success message
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '$courseName has been added to your courses!',
-                            ),
-                            backgroundColor: Colors.green,
-                            duration: const Duration(seconds: 2),
-                          ),
+                        Get.snackbar(
+                          'Success',
+                          '$courseName has been added to your courses!',
+                          backgroundColor: Colors.green,
+                          colorText: Colors.white,
+                          duration: const Duration(seconds: 2),
                         );
                       } else {
                         // Show error message if course not found
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Course $courseName not found!'),
-                            backgroundColor: Colors.red,
-                            duration: const Duration(seconds: 2),
-                          ),
+                        Get.snackbar(
+                          'Error',
+                          'Course $courseName not found!',
+                          backgroundColor: Colors.red,
+                          colorText: Colors.white,
+                          duration: const Duration(seconds: 2),
                         );
                       }
                     }

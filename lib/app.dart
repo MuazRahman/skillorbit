@@ -4,6 +4,9 @@ import 'package:skillorbit/controllers/theme_controller.dart';
 import 'package:skillorbit/core/app_theme.dart';
 import 'package:skillorbit/core/controller_binder.dart';
 import 'package:skillorbit/screens/splash_screen.dart';
+import 'package:skillorbit/screens/auth/login_screen.dart';
+import 'package:skillorbit/screens/auth/signup_screen.dart';
+import 'package:skillorbit/screens/dashboard_screen.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -25,7 +28,12 @@ class _AppState extends State<App> {
         theme: themeController.isDarkMode.value
             ? AppTheme.darkTheme
             : AppTheme.lightTheme,
-        home: const SplashScreen(), // Start with splash screen
+        home: const SplashScreen(),
+        getPages: [
+          GetPage(name: '/login', page: () => const LoginScreen()),
+          GetPage(name: '/signup', page: () => const SignupScreen()),
+          GetPage(name: '/dashboard', page: () => const DashboardScreen()),
+        ],
       ),
     );
   }

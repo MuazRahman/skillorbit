@@ -26,11 +26,17 @@ dependencies:
   # Add Firestore (Cloud Firestore Database)
   cloud_firestore: ^5.5.0
 
+  # Add Firebase Authentication
+  firebase_auth: ^5.3.3
+
   # SVG Image Support
   flutter_svg: ^2.0.0+1
 
-  # (Optional but recommended if you plan to use login system)
-  # firebase_auth: ^5.3.3
+  # Image Picker
+  image_picker: ^1.0.7
+  
+  # URL Launcher
+  url_launcher: ^6.2.5
 
 dev_dependencies:
   flutter_test:

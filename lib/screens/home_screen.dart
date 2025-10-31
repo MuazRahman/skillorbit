@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:skillorbit/controllers/auth_controller.dart';
 import 'package:skillorbit/controllers/home_screen_controller.dart';
 import 'package:skillorbit/controllers/theme_controller.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
@@ -36,13 +37,10 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Default user name (in a real app, this would come from user data)
-    const String userName = "Alex";
-
     // Get required controllers using GetX dependency injection
+    final AuthController authController = Get.find<AuthController>();
     final ThemeController themeController = Get.find<ThemeController>();
-    final HomeScreenController homeScreenController =
-        Get.find<HomeScreenController>();
+    final HomeScreenController homeScreenController = Get.find<HomeScreenController>();
     final CourseController courseController = Get.find<CourseController>();
 
     return TopRoundCornerScreen(
@@ -59,11 +57,14 @@ class HomeScreen extends StatelessWidget {
                 context,
               ).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
             ),
-            Text(
-              userName,
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            Obx(() => Text(
+                  authController.userName.value.isNotEmpty
+                      ? authController.userName.value
+                      : 'Guest User',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                ),
             ),
 
             // === MAIN CONTENT AREA ===
@@ -317,66 +318,61 @@ class HomeScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Stack(
-                    alignment: Alignment.topRight,
-                    children: [
-                      // Display course icon as an image
-                      SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: course.icon.isNotEmpty
-                            ? (course.icon.contains('.svg')
-                                  ? SvgPicture.asset(
-                                      course.icon,
-                                      fit: BoxFit.contain,
-                                      placeholderBuilder: (context) => Icon(
-                                        _getIconForCourse(course.name),
-                                        size: 40,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                      ),
-                                    )
-                                  : course.icon.contains('.png')
-                                  ? Image.asset(
-                                      course.icon,
-                                      fit: BoxFit.contain,
-                                      errorBuilder:
-                                          (context, error, stackTrace) => Icon(
-                                            _getIconForCourse(course.name),
-                                            size: 40,
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.primary,
-                                          ),
-                                    )
-                                  : Icon(
-                                      _getIconForCourse(course.name),
-                                      size: 40,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                    ))
-                            : Icon(
-                                _getIconForCourse(course.name),
-                                size: 40,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                      ),
-                      if (isEnrolled)
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary,
-                            shape: BoxShape.circle,
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: course.icon.isNotEmpty
+                        ? (course.icon.contains('.svg')
+                        ? SvgPicture.asset(
+                      course.icon,
+                      fit: BoxFit.contain,
+                      placeholderBuilder: (context) =>
+                          Icon(
+                            _getIconForCourse(course.name),
+                            size: 40,
+                            color: Theme
+                                .of(
+                              context,
+                            )
+                                .colorScheme
+                                .primary,
                           ),
-                          child: const Icon(
-                            Icons.check,
-                            size: 12,
-                            color: Colors.white,
+                    )
+                        : course.icon.contains('.png')
+                        ? Image.asset(
+                      course.icon,
+                      fit: BoxFit.contain,
+                      errorBuilder:
+                          (context, error, stackTrace) =>
+                          Icon(
+                            _getIconForCourse(course.name),
+                            size: 40,
+                            color: Theme
+                                .of(
+                              context,
+                            )
+                                .colorScheme
+                                .primary,
                           ),
-                        ),
-                    ],
+                    )
+                        : Icon(
+                      _getIconForCourse(course.name),
+                      size: 40,
+                      color: Theme
+                          .of(
+                        context,
+                      )
+                          .colorScheme
+                          .primary,
+                    ))
+                        : Icon(
+                      _getIconForCourse(course.name),
+                      size: 40,
+                      color: Theme
+                          .of(context)
+                          .colorScheme
+                          .primary,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(

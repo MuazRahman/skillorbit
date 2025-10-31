@@ -1,14 +1,14 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
-import 'package:skillorbit/controllers/dashboard_controller.dart';
-import 'package:skillorbit/controllers/theme_controller.dart';
-import 'package:skillorbit/models/course_model.dart';
-import 'package:skillorbit/screens/enhanced_achievements_screen.dart';
+import 'package:skillorbit/controllers/auth_controller.dart';
+import 'package:skillorbit/screens/edit_profile_screen.dart';
 import 'package:skillorbit/widgets/top_round_corner_widget.dart';
 
 class ProfileScreen extends StatelessWidget {
   final CourseController courseController = Get.find<CourseController>();
+  final AuthController authController = Get.find<AuthController>();
 
   ProfileScreen({super.key});
 
@@ -57,51 +57,99 @@ class ProfileScreen extends StatelessWidget {
                     Stack(
                       alignment: Alignment.bottomRight,
                       children: [
-                        CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Colors.white.withOpacity(0.2),
-                          child: const Icon(
-                            Icons.person,
-                            size: 50,
-                            color: Colors.white,
-                          ),
-                        ),
-                        Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 2,
+                        Obx(() {
+                          final photoUrl = authController.userPhotoUrl.value;
+                          if (photoUrl.isEmpty) {
+                            return CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.white.withOpacity(0.2),
+                              child: const Icon(
+                                Icons.person,
+                                size: 50,
+                                color: Colors.white,
+                              ),
+                            );
+                          }
+                          
+                          // Check if it's a base64 image
+                          if (photoUrl.startsWith('data:image')) {
+                            try {
+                              final base64String = photoUrl.split(',')[1];
+                              final bytes = base64Decode(base64String);
+                              return CircleAvatar(
+                                radius: 50,
+                                backgroundColor: Colors.white.withOpacity(0.2),
+                                backgroundImage: MemoryImage(bytes),
+                              );
+                            } catch (e) {
+                              return CircleAvatar(
+                                radius: 50,
+                                backgroundColor: Colors.white.withOpacity(0.2),
+                                child: const Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: Colors.white,
+                                ),
+                              );
+                            }
+                          }
+                          
+                          // Otherwise, it's a network URL
+                          return CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Colors.white.withOpacity(0.2),
+                            backgroundImage: NetworkImage(photoUrl),
+                            onBackgroundImageError: (_, __) {},
+                          );
+                        }),
+                        GestureDetector(
+                          onTap: () {
+                            // Navigate to edit profile screen
+                            Get.to(() => const EditProfileScreen());
+                          },
+                          child: Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 2,
+                              ),
                             ),
-                          ),
-                          child: const Icon(
-                            Icons.edit,
-                            size: 16,
-                            color: Colors.blue,
+                            child: const Icon(
+                              Icons.edit,
+                              size: 16,
+                              color: Colors.blue,
+                            ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'John Doe',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
+                    Obx(() {
+                      final username = authController.userName.value;
+                      return Text(
+                        username.isNotEmpty ? username : 'Guest User',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      );
+                    }),
                     const SizedBox(height: 8),
-                    Text(
-                      'Learning Enthusiast',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white.withOpacity(0.9),
-                      ),
-                    ),
+                    Obx(() {
+                      final email = authController.userEmail.value;
+                      return Text(
+                        email.isNotEmpty ? email : 'Not logged in',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white.withOpacity(0.9),
+                        ),
+                      );
+                    }),
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -304,65 +352,6 @@ class ProfileScreen extends StatelessWidget {
                         },
                       );
                     }),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 32),
-
-              // Settings Section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Settings',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
-                            spreadRadius: 1,
-                            blurRadius: 5,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          ListTile(
-                            leading: const Icon(Icons.brightness_6),
-                            title: const Text('Dark Mode'),
-                            trailing: Obx(
-                              () => Switch(
-                                value: Get.find<ThemeController>()
-                                    .isDarkMode
-                                    .value,
-                                onChanged: (value) {
-                                  Get.find<ThemeController>().changeTheme();
-                                },
-                              ),
-                            ),
-                          ),
-                          const Divider(height: 1),
-                          ListTile(
-                            leading: const Icon(Icons.logout),
-                            title: const Text('Logout'),
-                            onTap: () {
-                              // Handle logout
-                              Get.offAllNamed('/login');
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),
