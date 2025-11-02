@@ -28,6 +28,9 @@ dependencies:
 
   # Add Firebase Authentication
   firebase_auth: ^5.3.3
+  
+  # Add Firebase Storage
+  firebase_storage: ^12.4.10
 
   # SVG Image Support
   flutter_svg: ^2.0.0+1

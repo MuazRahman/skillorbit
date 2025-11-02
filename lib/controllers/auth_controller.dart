@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
+import 'package:path/path.dart' as path;
 
 class AuthController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -122,8 +125,24 @@ class AuthController extends GetxController {
     }
   }
 
+  /// Upload image to Firebase Storage and return download URL
+  Future<String?> _uploadImage(File imageFile) async {
+    try {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('profile_pictures')
+          .child('${DateTime.now().millisecondsSinceEpoch}${path.extension(imageFile.path)}');
+      
+      await storageRef.putFile(imageFile);
+      return await storageRef.getDownloadURL();
+    } catch (e) {
+      print('Error uploading image: $e');
+      return null;
+    }
+  }
+
   /// Update user profile (username and photo)
-  Future<String?> updateProfile(String username, String photoUrl) async {
+  Future<String?> updateProfile(String username, String photoUrl, {File? imageFile}) async {
     try {
       isLoading.value = true;
       User? user = _auth.currentUser;
@@ -132,14 +151,34 @@ class AuthController extends GetxController {
         isLoading.value = false;
         return 'No user logged in';
       }
+
+      String? photoUrlToUse = photoUrl;
       
-      await user.updateDisplayName(username);
-      await user.updatePhotoURL(photoUrl);
+      // If a new image file is provided, upload it first
+      if (imageFile != null) {
+        final downloadUrl = await _uploadImage(imageFile);
+        if (downloadUrl == null) {
+          isLoading.value = false;
+          return 'Failed to upload profile picture';
+        }
+        photoUrlToUse = downloadUrl;
+      }
+      
+      // Only update display name if it has changed
+      if (user.displayName != username) {
+        await user.updateDisplayName(username);
+      }
+      
+      // Only update photo URL if it has changed
+      if (user.photoURL != photoUrlToUse) {
+        await user.updatePhotoURL(photoUrlToUse);
+      }
+      
       await user.reload();
       
       // Update observable values
       userName.value = username;
-      userPhotoUrl.value = photoUrl;
+      userPhotoUrl.value = photoUrlToUse ?? '';
       
       isLoading.value = false;
       return null; // Success

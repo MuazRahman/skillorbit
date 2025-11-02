@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/controllers/auth_controller.dart';
+import 'package:skillorbit/controllers/dashboard_controller.dart';
 import 'package:skillorbit/screens/edit_profile_screen.dart';
+import 'package:skillorbit/screens/enhanced_achievements_screen.dart';
 import 'package:skillorbit/widgets/top_round_corner_widget.dart';
 
 class ProfileScreen extends StatelessWidget {
   final CourseController courseController = Get.find<CourseController>();
   final AuthController authController = Get.find<AuthController>();
+  final DashBoardController dashboardController =
+      Get.find<DashBoardController>();
 
   ProfileScreen({super.key});
 
@@ -70,7 +74,7 @@ class ProfileScreen extends StatelessWidget {
                               ),
                             );
                           }
-                          
+
                           // Check if it's a base64 image
                           if (photoUrl.startsWith('data:image')) {
                             try {
@@ -93,7 +97,7 @@ class ProfileScreen extends StatelessWidget {
                               );
                             }
                           }
-                          
+
                           // Otherwise, it's a network URL
                           return CircleAvatar(
                             radius: 50,
@@ -191,20 +195,39 @@ class ProfileScreen extends StatelessWidget {
                       () => Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _buildEnhancedStatCard(
-                            context,
-                            'Courses',
-                            courseController.enrolledCourses.length.toString(),
-                            Icons.school,
-                            Theme.of(context).colorScheme.primary,
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                // Navigate to My Course screen via bottom nav bar
+                                dashboardController.currentPageIndex.value = 1;
+                                // Pop to dashboard screen
+                                Get.until((route) => route.isFirst);
+                              },
+                              child: _buildEnhancedStatCard(
+                                context,
+                                'Courses',
+                                courseController.enrolledCourses.length
+                                    .toString(),
+                                Icons.school,
+                                Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 16),
-                          _buildEnhancedStatCard(
-                            context,
-                            'Achievements',
-                            courseController.achievements.length.toString(),
-                            Icons.emoji_events,
-                            Colors.amber,
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                // Navigate to Enhanced Achievements screen
+                                Get.to(() => EnhancedAchievementsScreen());
+                              },
+                              child: _buildEnhancedStatCard(
+                                context,
+                                'Achievements',
+                                courseController.achievements.length.toString(),
+                                Icons.emoji_events,
+                                Colors.amber,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -371,35 +394,44 @@ class ProfileScreen extends StatelessWidget {
     IconData icon,
     Color iconColor,
   ) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              spreadRadius: 1,
-              blurRadius: 5,
-              offset: const Offset(0, 2),
+    return Container(
+      constraints: const BoxConstraints(minHeight: 120),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              shape: BoxShape.circle,
             ),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: iconColor, size: 32),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
+            child: Icon(icon, color: iconColor, size: 24),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }

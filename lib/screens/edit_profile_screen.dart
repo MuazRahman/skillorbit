@@ -61,14 +61,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           _selectedImage = File(image.path);
         });
 
-        // Convert to base64 for Firebase storage
-        final bytes = await _selectedImage!.readAsBytes();
-        _base64Image = 'data:image/jpeg;base64,${base64Encode(bytes)}';
-        _profilePictureController.text = _base64Image!;
-
         Get.snackbar(
           'Success',
-          'Profile picture selected!',
+          'Profile picture selected! Click save to update your profile.',
           backgroundColor: Colors.green,
           colorText: Colors.white,
           duration: const Duration(seconds: 2),
@@ -87,9 +82,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _handleUpdateProfile() async {
     if (_formKey.currentState!.validate()) {
       final username = _usernameController.text.trim();
-      final profilePicture = _profilePictureController.text.trim();
+      final currentPhotoUrl = _authController.userPhotoUrl.value;
 
-      final result = await _authController.updateProfile(username, profilePicture);
+      final result = await _authController.updateProfile(
+        username,
+        currentPhotoUrl,
+        imageFile: _selectedImage,
+      );
 
       if (result == null) {
         Get.snackbar(

@@ -40,7 +40,8 @@ class HomeScreen extends StatelessWidget {
     // Get required controllers using GetX dependency injection
     final AuthController authController = Get.find<AuthController>();
     final ThemeController themeController = Get.find<ThemeController>();
-    final HomeScreenController homeScreenController = Get.find<HomeScreenController>();
+    final HomeScreenController homeScreenController =
+        Get.find<HomeScreenController>();
     final CourseController courseController = Get.find<CourseController>();
 
     return TopRoundCornerScreen(
@@ -57,14 +58,15 @@ class HomeScreen extends StatelessWidget {
                 context,
               ).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
             ),
-            Obx(() => Text(
-                  authController.userName.value.isNotEmpty
-                      ? authController.userName.value
-                      : 'Guest User',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            Obx(
+              () => Text(
+                authController.userName.value.isNotEmpty
+                    ? authController.userName.value
+                    : 'Guest User',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
             ),
 
             // === MAIN CONTENT AREA ===
@@ -167,9 +169,15 @@ class HomeScreen extends StatelessWidget {
   ) {
     return Column(
       children: courseController.enrolledCourses.map((course) {
-        // Calculate progress for this course (simplified calculation)
-        // In a real app, this would be based on completed topics/achievements
-        final progress = _calculateCourseProgress(course, courseController);
+        // Calculate progress for this course using the same method as enhanced achievements screen
+        final totalSubtopics = courseController.getTotalSubtopicsForCourse(
+          course.name,
+        );
+        final completedSubtopics = courseController
+            .getCompletedSubtopicsForCourse(course.name);
+        final progress = totalSubtopics > 0
+            ? (completedSubtopics / totalSubtopics) * 100
+            : 0.0;
 
         return buildProgressCard(
           themeController,
@@ -323,56 +331,40 @@ class HomeScreen extends StatelessWidget {
                     height: 40,
                     child: course.icon.isNotEmpty
                         ? (course.icon.contains('.svg')
-                        ? SvgPicture.asset(
-                      course.icon,
-                      fit: BoxFit.contain,
-                      placeholderBuilder: (context) =>
-                          Icon(
+                              ? SvgPicture.asset(
+                                  course.icon,
+                                  fit: BoxFit.contain,
+                                  placeholderBuilder: (context) => Icon(
+                                    _getIconForCourse(course.name),
+                                    size: 40,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
+                                )
+                              : course.icon.contains('.png')
+                              ? Image.asset(
+                                  course.icon,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      Icon(
+                                        _getIconForCourse(course.name),
+                                        size: 40,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
+                                      ),
+                                )
+                              : Icon(
+                                  _getIconForCourse(course.name),
+                                  size: 40,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ))
+                        : Icon(
                             _getIconForCourse(course.name),
                             size: 40,
-                            color: Theme
-                                .of(
-                              context,
-                            )
-                                .colorScheme
-                                .primary,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
-                    )
-                        : course.icon.contains('.png')
-                        ? Image.asset(
-                      course.icon,
-                      fit: BoxFit.contain,
-                      errorBuilder:
-                          (context, error, stackTrace) =>
-                          Icon(
-                            _getIconForCourse(course.name),
-                            size: 40,
-                            color: Theme
-                                .of(
-                              context,
-                            )
-                                .colorScheme
-                                .primary,
-                          ),
-                    )
-                        : Icon(
-                      _getIconForCourse(course.name),
-                      size: 40,
-                      color: Theme
-                          .of(
-                        context,
-                      )
-                          .colorScheme
-                          .primary,
-                    ))
-                        : Icon(
-                      _getIconForCourse(course.name),
-                      size: 40,
-                      color: Theme
-                          .of(context)
-                          .colorScheme
-                          .primary,
-                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -416,23 +408,24 @@ class HomeScreen extends StatelessWidget {
     }
   }
 
-  // Helper method to calculate course progress
-  double _calculateCourseProgress(
-    Course course,
-    CourseController courseController,
-  ) {
-    // Count achievements for this course
-    final courseAchievements = courseController.achievements
-        .where((achievement) => achievement.courseName == course.name)
-        .length;
-
-    // Calculate progress based on completed topics vs total topics
-    if (course.topics.isEmpty) return 0.0;
-
-    // Progress is based on achievements earned for this course
-    final progress = (courseAchievements / course.topics.length) * 100;
-    return progress.clamp(0.0, 100.0);
-  }
+  // Helper method to calculate course progress - DEPRECATED
+  // This method is no longer used as we're using the more accurate method from CourseController
+  // double _calculateCourseProgress(
+  //   Course course,
+  //   CourseController courseController,
+  // ) {
+  //   // Count achievements for this course
+  //   final courseAchievements = courseController.achievements
+  //       .where((achievement) => achievement.courseName == course.name)
+  //       .length;
+  //
+  //   // Calculate progress based on completed topics vs total topics
+  //   if (course.topics.isEmpty) return 0.0;
+  //
+  //   // Progress is based on achievements earned for this course
+  //   final progress = (courseAchievements / course.topics.length) * 100;
+  //   return progress.clamp(0.0, 100.0);
+  // }
 
   // Search Box
   // Widget buildSearchBar(BuildContext context) {
@@ -470,7 +463,6 @@ class HomeScreen extends StatelessWidget {
   }) {
     return Obx(() {
       final isDarkMode = themeController.isDarkMode.value;
-      final progressInt = progress.toInt();
 
       return Card(
         elevation: 3,
@@ -493,7 +485,7 @@ class HomeScreen extends StatelessWidget {
                   ).colorScheme.surfaceContainerHighest,
                   child: Center(
                     child: Text(
-                      '$progressInt%',
+                      '${progress.toStringAsFixed(2)}%', // Display with 2 decimal places
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
