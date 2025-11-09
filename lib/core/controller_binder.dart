@@ -8,10 +8,13 @@ import 'package:skillorbit/controllers/theme_controller.dart';
 class ControllerBinder extends Bindings {
   @override
   void dependencies() {
-    Get.put(AuthController());
-    Get.put(ThemeController());
-    Get.put(DashBoardController());
-    Get.put(HomeScreenController());
-    Get.put(CourseController());
+    Get.lazyPut<AuthController>(() => AuthController(), fenix: true);
+    Get.lazyPut<CourseController>(() => CourseController(), fenix: true);
+    Get.lazyPut<DashBoardController>(() => DashBoardController(), fenix: true);
+    Get.lazyPut<HomeScreenController>(
+      () => HomeScreenController(),
+      fenix: true,
+    );
+    Get.lazyPut<ThemeController>(() => ThemeController(), fenix: true);
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:skillorbit/controllers/auth_controller.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/screens/dashboard_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -42,16 +44,29 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _initializeApp() async {
     try {
-      // Get the course controller
+      // Get the controllers
+      final authController = Get.find<AuthController>();
       final courseController = Get.find<CourseController>();
 
+      // Wait for authentication state to be ready
+      await _waitForAuthState(authController);
+
       // Start loading courses asynchronously (non-blocking)
+      // This will continue in the background after navigation
       courseController.loadCoursesFromFirestore();
 
-      // Wait for 3 seconds to show the splash screen
-      await Future.delayed(const Duration(seconds: 3));
+      // Load user data if user is logged in
+      if (authController.isLoggedIn.value) {
+        print('User is logged in, loading user data');
+        courseController.loadUserData();
+      } else {
+        print('No user logged in, skipping user data load');
+      }
 
-      // Always navigate to dashboard - users can browse without login
+      // Wait for just 2 seconds to show the splash screen
+      await Future.delayed(const Duration(seconds: 2));
+
+      // Navigate to dashboard immediately - data will load in background
       print('Navigating to dashboard...');
       if (mounted) {
         Get.offAll(() => const DashboardScreen());
@@ -62,6 +77,23 @@ class _SplashScreenState extends State<SplashScreen>
       if (mounted) {
         Get.offAll(() => const DashboardScreen());
       }
+    }
+  }
+
+  /// Wait for authentication state to be established
+  Future<void> _waitForAuthState(AuthController authController) async {
+    // Wait up to 3 seconds for auth state to be established
+    int attempts = 0;
+    while (attempts < 30) {
+      // Check if Firebase auth has established the user state
+      if (FirebaseAuth.instance.currentUser != null ||
+          FirebaseAuth.instance.currentUser == null) {
+        // Auth state is ready (either logged in or not)
+        print('Auth state ready after ${attempts * 100}ms');
+        break;
+      }
+      attempts++;
+      await Future.delayed(const Duration(milliseconds: 100));
     }
   }
 

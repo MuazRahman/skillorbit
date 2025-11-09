@@ -16,6 +16,68 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
   bool _isEditing = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Load user's enrolled courses when the screen is opened
+    _loadUserEnrolledCourses();
+  }
+
+  /// Load user's enrolled courses from Firestore
+  Future<void> _loadUserEnrolledCourses() async {
+    try {
+      final courseController = Get.find<CourseController>();
+      print('MyCourseScreen: Starting to load user data');
+      // Use lazy loading - don't await the future to prevent UI blocking
+      courseController.loadUserData();
+      print('MyCourseScreen: Started loading user data in background');
+    } catch (e) {
+      print('MyCourseScreen: Error starting user data loading: $e');
+      if (mounted) {
+        Get.snackbar(
+          'Error',
+          'Failed to load your data. Please try again.',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    }
+  }
+
+  /// Refresh enrolled courses from Firestore
+  Future<void> _refreshEnrolledCourses() async {
+    try {
+      final courseController = Get.find<CourseController>();
+      print('MyCourseScreen: Refreshing user data');
+      // Reload user's enrolled courses and achievements
+      await courseController.loadUserData();
+      print('MyCourseScreen: Refreshed user enrolled courses and achievements');
+
+      // Force a rebuild of the widget to update the UI
+      setState(() {});
+
+      if (mounted) {
+        Get.snackbar(
+          'Refreshed',
+          'Your courses have been updated!',
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          duration: const Duration(seconds: 1),
+        );
+      }
+    } catch (e) {
+      print('MyCourseScreen: Error refreshing enrolled courses: $e');
+      if (mounted) {
+        Get.snackbar(
+          'Error',
+          'Failed to refresh courses. Please try again.',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final courseController = Get.find<CourseController>();
 
@@ -53,8 +115,8 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
                   Text(
                     'My Courses',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   IconButton(
                     icon: Icon(_isEditing ? Icons.done : Icons.edit),
@@ -68,146 +130,149 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    // Calculate card size to make them square
-                    final cardWidth =
-                        (constraints.maxWidth - 16) / 2; // Subtract spacing
-                    return GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                          ),
-                      itemCount: courseController.enrolledCourses.length,
-                      itemBuilder: (context, index) {
-                        final course = courseController.enrolledCourses[index];
-                        return Stack(
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                Get.to(
-                                  () => EnrolledCourseScreen(course: course),
-                                );
-                              },
-                              child: Card(
-                                elevation: 2,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Container(
-                                  height:
-                                      cardWidth, // Make height equal to width for square shape
-                                  width: cardWidth,
-                                  padding: const EdgeInsets.all(12.0),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      // Display course icon as an image
-                                      Expanded(
-                                        child: course.icon.isNotEmpty
-                                            ? (course.icon.contains('.svg')
+                child: RefreshIndicator(
+                  onRefresh: _refreshEnrolledCourses,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Calculate card size to make them square
+                      final cardWidth =
+                          (constraints.maxWidth - 16) / 2; // Subtract spacing
+                      return GridView.builder(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                        itemCount: courseController.enrolledCourses.length,
+                        itemBuilder: (context, index) {
+                          final course =
+                              courseController.enrolledCourses[index];
+                          return Stack(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  Get.to(
+                                    () => EnrolledCourseScreen(course: course),
+                                  );
+                                },
+                                child: Card(
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Container(
+                                    height:
+                                        cardWidth, // Make height equal to width for square shape
+                                    width: cardWidth,
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        // Display course icon as an image
+                                        Expanded(
+                                          child: course.icon.isNotEmpty
+                                              ? (course.icon.contains('.svg')
                                                   ? SvgPicture.asset(
                                                       course.icon,
                                                       fit: BoxFit.contain,
                                                       placeholderBuilder:
                                                           (context) => Icon(
-                                                            Icons.school,
-                                                            size: 40,
-                                                            color:
-                                                                Theme.of(
-                                                                      context,
-                                                                    )
-                                                                    .colorScheme
-                                                                    .primary,
-                                                          ),
+                                                        Icons.school,
+                                                        size: 40,
+                                                        color: Theme.of(
+                                                          context,
+                                                        ).colorScheme.primary,
+                                                      ),
                                                     )
-                                                  : course.icon.contains('.png')
-                                                  ? Image.asset(
-                                                      course.icon,
-                                                      fit: BoxFit.contain,
-                                                      errorBuilder:
-                                                          (
+                                                  : course.icon.contains(
+                                                      '.png',
+                                                    )
+                                                      ? Image.asset(
+                                                          course.icon,
+                                                          fit: BoxFit.contain,
+                                                          errorBuilder: (
                                                             context,
                                                             error,
                                                             stackTrace,
-                                                          ) => Icon(
+                                                          ) =>
+                                                              Icon(
                                                             Icons.school,
                                                             size: 40,
-                                                            color:
-                                                                Theme.of(
-                                                                      context,
-                                                                    )
-                                                                    .colorScheme
-                                                                    .primary,
+                                                            color: Theme.of(
+                                                              context,
+                                                            )
+                                                                .colorScheme
+                                                                .primary,
                                                           ),
-                                                    )
-                                                  : Icon(
-                                                      Icons.school,
-                                                      size: 40,
-                                                      color: Theme.of(
-                                                        context,
-                                                      ).colorScheme.primary,
-                                                    ))
-                                            : Icon(
-                                                Icons.school,
-                                                size: 40,
-                                                color: Theme.of(
-                                                  context,
-                                                ).colorScheme.primary,
-                                              ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        course.name,
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleMedium,
-                                        textAlign: TextAlign.center,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            if (_isEditing)
-                              Positioned(
-                                top: 4,
-                                right: 4,
-                                child: Container(
-                                  width: 20,
-                                  height: 20,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: IconButton(
-                                    padding: EdgeInsets.zero,
-                                    icon: const Icon(
-                                      Icons.close,
-                                      color: Colors.white,
-                                      size: 12,
+                                                        )
+                                                      : Icon(
+                                                          Icons.school,
+                                                          size: 40,
+                                                          color: Theme.of(
+                                                            context,
+                                                          ).colorScheme.primary,
+                                                        ))
+                                              : Icon(
+                                                  Icons.school,
+                                                  size: 40,
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary,
+                                                ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          course.name,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.titleMedium,
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
                                     ),
-                                    onPressed: () {
-                                      // Remove the course
-                                      courseController.removeCourse(
-                                        course.name,
-                                      );
-                                      setState(() {
-                                        // Refresh the UI
-                                      });
-                                    },
                                   ),
                                 ),
                               ),
-                          ],
-                        );
-                      },
-                    );
-                  },
+                              if (_isEditing)
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: IconButton(
+                                      padding: EdgeInsets.zero,
+                                      icon: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 12,
+                                      ),
+                                      onPressed: () {
+                                        // Remove the course
+                                        courseController.removeCourse(
+                                          course.name,
+                                        );
+                                        setState(() {
+                                          // Refresh the UI
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ),
             ],

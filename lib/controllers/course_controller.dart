@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:skillorbit/core/asset_path.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/firestore_course_service.dart';
+import '../services/firestore_user_service.dart';
 import '../models/course_model.dart';
 
 /// Controller responsible for managing course data and user progress
@@ -26,16 +28,63 @@ class CourseController extends GetxController {
 
   /// Service for interacting with Firestore database
   final FirestoreCourseService _firestoreService = FirestoreCourseService();
+  final FirestoreUserService _userService = FirestoreUserService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// Initializes the controller
   ///
   /// This method is automatically called when the controller is created.
   /// We don't load courses here anymore as it's handled by the splash screen.
+  /// However, we check if a user is already logged in and load their data.
   @override
   void onInit() {
     super.onInit();
     print('CourseController initialized');
     // Course loading is now handled by the splash screen
+
+    // Check if user is already logged in and load their data
+    _checkAndLoadUserData();
+  }
+
+  /// Check if user is logged in and load their data
+  ///
+  /// This method is called during initialization to check if a user is already
+  /// logged in (e.g., after hot restart) and load their enrolled courses and achievements.
+  Future<void> _checkAndLoadUserData() async {
+    try {
+      // Check if user is logged in
+      final user = _auth.currentUser;
+      if (user != null) {
+        print('User is already logged in (${user.uid}), loading user data');
+        // Load user data in background
+        // Add a small delay to ensure controllers are fully initialized
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        // Ensure available courses are loaded before loading user data
+        if (availableCourses.isEmpty) {
+          print('Available courses not loaded yet, loading them first');
+          await loadCoursesFromFirestore();
+        }
+
+        await loadUserData();
+        print('User data loading completed for user: ${user.uid}');
+      } else {
+        print('No user logged in');
+      }
+    } catch (e) {
+      print('Error checking user login status: $e');
+    }
+  }
+
+  /// Clears all user-specific data
+  ///
+  /// This method should be called when a user logs out to clear their
+  /// enrolled courses and achievements from memory.
+  void clearUserData() {
+    print('Clearing user data');
+    enrolledCourses.clear();
+    achievements.clear();
+    print('User data cleared');
   }
 
   /// Loads all courses from Firestore database
@@ -144,37 +193,37 @@ class CourseController extends GetxController {
       case 'flutter':
         // Return SVG icon
         return AssetsPath.flutterIconSvg;
-        // return 'assets/images/flutter-svg.svg';
+      // return 'assets/images/flutter-svg.svg';
       case 'c':
         return AssetsPath.cIconSvg;
-        // return 'assets/images/c_svg.svg';
+      // return 'assets/images/c_svg.svg';
       case 'c++':
         return AssetsPath.cppIconSvg;
-        // return 'assets/images/c++_svg.svg';
+      // return 'assets/images/c++_svg.svg';
       case 'java':
         return AssetsPath.javaIconSvg;
-        // return 'assets/images/java_svg.svg';
+      // return 'assets/images/java_svg.svg';
       case 'database':
         return AssetsPath.javaIconSvg;
-        // return 'assets/images/database_svg.svg';
+      // return 'assets/images/database_svg.svg';
       case 'mysql':
         return AssetsPath.mysqlIconSvg;
-        // return 'assets/images/mysql_svg.svg';
+      // return 'assets/images/mysql_svg.svg';
       case 'html':
         return AssetsPath.htmlIconSvg;
-        // return 'assets/images/html_svg.svg';
+      // return 'assets/images/html_svg.svg';
       case 'python':
         return AssetsPath.pythonIconSvg;
-        // return 'assets/images/python_svg.svg';
+      // return 'assets/images/python_svg.svg';
       case 'dart':
         return AssetsPath.dartIconSvg;
-        // return 'assets/images/dart_svg.svg';
+      // return 'assets/images/dart_svg.svg';
       case 'react':
         return AssetsPath.reactIconSvg;
-        // return 'assets/images/react-svg.svg';
+      // return 'assets/images/react-svg.svg';
       default:
         return AssetsPath.flutterIconSvg; // Use flutter icon as default
-        // return 'assets/images/flutter-svg.svg';
+      // return 'assets/images/flutter-svg.svg';
     }
   }
 
@@ -187,9 +236,8 @@ class CourseController extends GetxController {
   Future<List<Topic>> loadTopicsForCourse(String courseId) async {
     try {
       print('Loading topics for course ID: $courseId');
-      final topicsSnapshot = await _firestoreService
-          .getCourseTopics(courseId)
-          .first;
+      final topicsSnapshot =
+          await _firestoreService.getCourseTopics(courseId).first;
       print(
         'Received ${topicsSnapshot.docs.length} topics for course ID: $courseId',
       );
@@ -250,9 +298,8 @@ class CourseController extends GetxController {
   ) async {
     try {
       print('Loading subtopics for course ID: $courseId, topic ID: $topicId');
-      final subtopicsSnapshot = await _firestoreService
-          .getSubtopics(courseId, topicId)
-          .first;
+      final subtopicsSnapshot =
+          await _firestoreService.getSubtopics(courseId, topicId).first;
       print(
         'Received ${subtopicsSnapshot.docs.length} subtopics for course ID: $courseId, topic ID: $topicId',
       );
@@ -279,6 +326,7 @@ class CourseController extends GetxController {
             name: subtopicModel.name,
             description: subtopicModel.description,
             tutorialLink: subtopicModel.tutorialLink,
+            videoUrl: subtopicModel.videoUrl,
             order: subtopicModel.order,
             quizQuestions: quizQuestions,
           ),
@@ -395,12 +443,29 @@ class CourseController extends GetxController {
   /// Enrolls a user in a course
   ///
   /// Adds a course to the user's enrolled courses list if not already enrolled.
+  /// Also updates the user's document in Firestore to reflect the enrollment.
   ///
   /// [course] - The course to enroll in
-  void enrollCourse(Course course) {
+  Future<void> enrollCourse(Course course) async {
     // Check if course is already enrolled
     if (!isCourseEnrolled(course.name)) {
       enrolledCourses.add(course);
+
+      // Update Firestore with the enrollment
+      final user = _auth.currentUser;
+      if (user != null) {
+        try {
+          await _userService.enrollUserInCourse(user.uid, course.name);
+          print(
+              'Successfully enrolled user ${user.uid} in course ${course.name}');
+        } catch (e) {
+          print(
+              'Error enrolling user ${user.uid} in course ${course.name}: $e');
+          // Remove from local list if Firestore update failed
+          enrolledCourses.remove(course);
+          rethrow;
+        }
+      }
     }
   }
 
@@ -416,10 +481,157 @@ class CourseController extends GetxController {
   /// Removes a course from the user's enrolled courses
   ///
   /// Removes the specified course from the user's enrolled courses list.
+  /// Also updates the user's document in Firestore to reflect the removal.
+  /// Additionally, removes all achievements associated with that course.
   ///
   /// [courseName] - Name of the course to remove
-  void removeCourse(String courseName) {
+  Future<void> removeCourse(String courseName) async {
     enrolledCourses.removeWhere((course) => course.name == courseName);
+
+    // Update Firestore with the removal
+    final user = _auth.currentUser;
+    if (user != null) {
+      try {
+        // Remove the course from user's enrolled courses
+        await _userService.removeUserFromCourse(user.uid, courseName);
+
+        // Remove all achievements for this course
+        await _userService.removeUserAchievementsForCourse(
+            user.uid, courseName);
+
+        // Update local achievements list
+        achievements
+            .removeWhere((achievement) => achievement.courseName == courseName);
+
+        print(
+            'Successfully removed user ${user.uid} from course $courseName and deleted all related achievements');
+      } catch (e) {
+        print('Error removing user ${user.uid} from course $courseName: $e');
+        // Note: We don't re-add to local list here as the UI operation should succeed
+      }
+    }
+  }
+
+  /// Loads user's enrolled courses from Firestore
+  ///
+  /// Fetches the user's enrolled courses from Firestore and populates
+  /// the enrolledCourses list with the corresponding Course objects.
+  Future<void> loadUserEnrolledCourses() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      print('No user logged in, cannot load enrolled courses');
+      return;
+    }
+
+    try {
+      print('Loading enrolled courses for user: ${user.uid}');
+      final enrolledCourseNames =
+          await _userService.getUserEnrolledCourses(user.uid);
+      print(
+          'User is enrolled in ${enrolledCourseNames.length} courses: $enrolledCourseNames');
+
+      // Debug: Print available courses
+      print(
+          'Available courses: ${availableCourses.map((c) => c.name).toList()}');
+
+      // Clear current enrolled courses
+      enrolledCourses.clear();
+
+      // Find and add the corresponding Course objects
+      for (String courseName in enrolledCourseNames) {
+        // Use try/catch approach instead of firstWhereOrNull to avoid extension conflicts
+        try {
+          print('Looking for course: $courseName');
+          final course =
+              availableCourses.firstWhere((c) => c.name == courseName);
+          enrolledCourses.add(course);
+          print('Added enrolled course: $courseName');
+        } catch (e) {
+          print(
+              'Warning: Could not find course data for enrolled course: $courseName');
+          print(
+              'Available course names: ${availableCourses.map((c) => c.name).toList()}');
+        }
+      }
+
+      print(
+          'Loaded ${enrolledCourses.length} enrolled courses for user ${user.uid}');
+      print(
+          'Enrolled courses list: ${enrolledCourses.map((c) => c.name).toList()}');
+    } catch (e) {
+      print('Error loading enrolled courses for user ${user.uid}: $e');
+      // Re-throw the error so it can be caught by loadUserData
+      rethrow;
+    }
+  }
+
+  /// Adds a new achievement to the user's achievements
+  ///
+  /// Records a completed topic or subtopic as an achievement.
+  /// Also updates the user's document in Firestore to reflect the new achievement.
+  ///
+  /// [achievement] - The achievement to add
+  Future<void> addAchievement(Achievement achievement) async {
+    achievements.add(achievement);
+
+    // Update Firestore with the new achievement
+    final user = _auth.currentUser;
+    if (user != null) {
+      try {
+        await _userService.addUserAchievement(user.uid, achievement);
+        print(
+            'Successfully added achievement for user ${user.uid}: ${achievement.topicName}');
+      } catch (e) {
+        print('Error adding achievement for user ${user.uid}: $e');
+        // Remove from local list if Firestore update failed
+        achievements.remove(achievement);
+        rethrow;
+      }
+    }
+  }
+
+  /// Loads user's achievements from Firestore
+  ///
+  /// Fetches the user's achievements from Firestore and populates
+  /// the achievements list.
+  Future<void> loadUserAchievements() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      print('No user logged in, cannot load achievements');
+      return;
+    }
+
+    try {
+      print('Loading achievements for user: ${user.uid}');
+      final userAchievements = await _userService.getUserAchievements(user.uid);
+      print(
+          'Found ${userAchievements.length} achievements for user ${user.uid}');
+
+      // Clear current achievements and add the ones from Firestore
+      achievements.assignAll(userAchievements);
+
+      print('Loaded ${achievements.length} achievements for user ${user.uid}');
+    } catch (e) {
+      print('Error loading achievements for user ${user.uid}: $e');
+      // Re-throw the error so it can be caught by loadUserData
+      rethrow;
+    }
+  }
+
+  /// Loads all user data including enrolled courses and achievements
+  ///
+  /// Fetches both the user's enrolled courses and achievements from Firestore.
+  /// This method implements lazy loading by not blocking the UI.
+  Future<void> loadUserData() async {
+    try {
+      print('Starting to load user data');
+      // Load user data in parallel for better performance
+      await Future.wait([loadUserEnrolledCourses(), loadUserAchievements()]);
+      print('User data loading completed successfully');
+    } catch (e) {
+      print('Error loading user data: $e');
+      // Don't rethrow to prevent app crashes - data will be loaded on demand
+    }
   }
 
   /// Gets a course by name from available courses
@@ -433,15 +645,6 @@ class CourseController extends GetxController {
     } catch (e) {
       return null;
     }
-  }
-
-  /// Adds a new achievement to the user's achievements
-  ///
-  /// Records a completed topic or subtopic as an achievement.
-  ///
-  /// [achievement] - The achievement to add
-  void addAchievement(Achievement achievement) {
-    achievements.add(achievement);
   }
 
   /// Calculates the total number of subtopics in a course
@@ -472,9 +675,8 @@ class CourseController extends GetxController {
     try {
       final course = availableCourses.firstWhere((c) => c.name == courseName);
       int completed = 0;
-      final courseAchievements = achievements
-          .where((a) => a.courseName == courseName)
-          .toList();
+      final courseAchievements =
+          achievements.where((a) => a.courseName == courseName).toList();
 
       for (var achievement in courseAchievements) {
         // Check if achievement is for a subtopic

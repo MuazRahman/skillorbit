@@ -163,6 +163,9 @@ class Subtopic {
   /// Link to tutorial or additional learning resources
   final String tutorialLink;
 
+  /// URL for video tutorial
+  final String videoUrl;
+
   /// Order of the subtopic within the topic
   final int order;
 
@@ -175,6 +178,7 @@ class Subtopic {
   /// [name] - Name of the subtopic
   /// [description] - Description of the subtopic content
   /// [tutorialLink] - Link to tutorial resources
+  /// [videoUrl] - URL for video tutorial
   /// [order] - Position of the subtopic in the topic
   /// [quizQuestions] - List of quiz questions (default: empty list)
   Subtopic({
@@ -182,6 +186,7 @@ class Subtopic {
     required this.name,
     required this.description,
     required this.tutorialLink,
+    required this.videoUrl,
     required this.order,
     this.quizQuestions = const [],
   });
@@ -201,6 +206,7 @@ class Subtopic {
       name: data['name'] ?? '',
       description: data['description'] ?? '',
       tutorialLink: data['tutorialLink'] ?? '',
+      videoUrl: data['videoUrl'] ?? '',
       order: data['order'] ?? 0,
       quizQuestions: const [],
     );
@@ -254,9 +260,8 @@ class QuizQuestion {
     return QuizQuestion(
       id: doc.id,
       question: data['question'] ?? '',
-      options: data['options'] != null
-          ? List<String>.from(data['options'])
-          : [],
+      options:
+          data['options'] != null ? List<String>.from(data['options']) : [],
       correctAnswerIndex: data['correctAnswerIndex'] ?? 0,
       order: data['order'] ?? 0,
     );

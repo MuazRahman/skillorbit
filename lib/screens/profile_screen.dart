@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/controllers/auth_controller.dart';
 import 'package:skillorbit/controllers/dashboard_controller.dart';
+import 'package:skillorbit/models/course_model.dart';
 import 'package:skillorbit/screens/edit_profile_screen.dart';
 import 'package:skillorbit/screens/enhanced_achievements_screen.dart';
+import 'package:skillorbit/screens/enrolled_course_screen.dart';
 import 'package:skillorbit/widgets/top_round_corner_widget.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -18,12 +21,14 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Load user data lazily when the profile screen is accessed
+    _loadUserData();
+
     return TopRoundCornerScreen(
       child: RefreshIndicator(
         onRefresh: () async {
-          // Simulate refresh action
-          await Future.delayed(const Duration(seconds: 1));
-          // In a real app, you might want to refresh data from an API here
+          // Refresh user data
+          await courseController.loadUserData();
         },
         child: SingleChildScrollView(
           child: Column(
@@ -205,7 +210,7 @@ class ProfileScreen extends StatelessWidget {
                               },
                               child: _buildEnhancedStatCard(
                                 context,
-                                'Courses',
+                                'Enrolled courses',
                                 courseController.enrolledCourses.length
                                     .toString(),
                                 Icons.school,
@@ -232,6 +237,103 @@ class ProfileScreen extends StatelessWidget {
                         ],
                       ),
                     ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Courses Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'My Courses',
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        Obx(
+                          () => Text(
+                            '${courseController.enrolledCourses.length} enrolled',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    Obx(() {
+                      if (courseController.enrolledCourses.isEmpty) {
+                        return Center(
+                          child: Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 5,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Column(
+                              children: [
+                                Icon(
+                                  Icons.book_outlined,
+                                  size: 48,
+                                  color: Colors.grey,
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  'No courses enrolled yet',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Enroll in courses to start learning',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 1.2,
+                            ),
+                        itemCount: courseController.enrolledCourses.length,
+                        itemBuilder: (context, index) {
+                          final course =
+                              courseController.enrolledCourses[index];
+                          return _buildCourseCard(context, course);
+                        },
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -382,6 +484,87 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 32),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// Load user data lazily when the profile screen is accessed
+  void _loadUserData() {
+    try {
+      // Use lazy loading - don't await the future to prevent UI blocking
+      courseController.loadUserData();
+      print('Started loading user data in background for profile screen');
+    } catch (e) {
+      print('Error starting user data loading for profile screen: $e');
+    }
+  }
+
+  Widget _buildCourseCard(BuildContext context, Course course) {
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => EnrolledCourseScreen(course: course));
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Display course icon
+            Expanded(
+              child: course.icon.isNotEmpty
+                  ? (course.icon.contains('.svg')
+                        ? SvgPicture.asset(
+                            course.icon,
+                            fit: BoxFit.contain,
+                            placeholderBuilder: (context) => Icon(
+                              Icons.school,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          )
+                        : course.icon.contains('.png')
+                        ? Image.asset(
+                            course.icon,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.school,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          )
+                        : Icon(
+                            Icons.school,
+                            size: 32,
+                            color: Theme.of(context).colorScheme.primary,
+                          ))
+                  : Icon(
+                      Icons.school,
+                      size: 32,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              course.name,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );

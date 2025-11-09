@@ -2,11 +2,10 @@ name: skillorbit
 description: "A modern AI based learning app built by 'Skill Orbit' using Flutter and Firebase."
 
 publish_to: 'none'
-
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.9.2
+  sdk: ^3.5.3
 
 dependencies:
   flutter:
@@ -40,16 +39,20 @@ dependencies:
   
   # URL Launcher
   url_launcher: ^6.2.5
+  
+  # Video Player
+  video_player: ^2.9.1
+  
+  # YouTube Player
+  youtube_player_iframe: ^5.2.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  flutter_lints: ^5.0.0
+  flutter_lints: ^4.0.0
 
 flutter:
   uses-material-design: true
-
   assets:
     - assets/images/
     - assets/logo/

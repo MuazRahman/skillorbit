@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:skillorbit/controllers/course_controller.dart';
+import 'package:skillorbit/models/course_model.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:skillorbit/controllers/course_controller.dart';
+import 'package:video_player/video_player.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'package:skillorbit/controllers/theme_controller.dart';
-import 'package:skillorbit/models/course_model.dart';
 import 'package:skillorbit/widgets/app_bar_widget.dart';
 
 class EnrolledCourseScreen extends StatefulWidget {
@@ -57,33 +59,33 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
                     ),
                     child: widget.course.icon.isNotEmpty
                         ? (widget.course.icon.contains('.svg')
-                              ? SvgPicture.asset(
-                                  widget.course.icon,
-                                  width: 80,
-                                  height: 80,
-                                  placeholderBuilder: (context) => Icon(
-                                    Icons.school,
-                                    size: 80,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : widget.course.icon.contains('.png')
-                              ? Image.asset(
-                                  widget.course.icon,
-                                  width: 80,
-                                  height: 80,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Icon(
-                                        Icons.school,
-                                        size: 80,
-                                        color: Colors.white,
-                                      ),
-                                )
-                              : Icon(
+                            ? SvgPicture.asset(
+                                widget.course.icon,
+                                width: 80,
+                                height: 80,
+                                placeholderBuilder: (context) => Icon(
                                   Icons.school,
                                   size: 80,
                                   color: Colors.white,
-                                ))
+                                ),
+                              )
+                            : widget.course.icon.contains('.png')
+                                ? Image.asset(
+                                    widget.course.icon,
+                                    width: 80,
+                                    height: 80,
+                                    errorBuilder:
+                                        (context, error, stackTrace) => Icon(
+                                      Icons.school,
+                                      size: 80,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.school,
+                                    size: 80,
+                                    color: Colors.white,
+                                  ))
                         : Icon(Icons.school, size: 80, color: Colors.white),
                   ),
                   const SizedBox(height: 16),
@@ -118,8 +120,8 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
                   Text(
                     'Course Topics',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
 
@@ -150,8 +152,43 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
                             topic.name,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          trailing: const Icon(Icons.arrow_forward_ios),
+                          // Show "Coming Soon" badge if topic has no content
+                          trailing: (topic.subtopics.isEmpty &&
+                                  topic.quizQuestions.isEmpty)
+                              ? Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Text(
+                                    'Coming Soon',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                )
+                              : const Icon(Icons.arrow_forward_ios),
                           onTap: () {
+                            // Check if topic has content (subtopics or quiz questions)
+                            if (topic.subtopics.isEmpty &&
+                                topic.quizQuestions.isEmpty) {
+                              // Show message that content is coming soon
+                              Get.snackbar(
+                                'Coming Soon',
+                                'This topic content is being prepared and will be available soon!',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.grey[700],
+                                colorText: Colors.white,
+                              );
+                              return;
+                            }
+
                             // Check if topic has subtopics
                             if (topic.subtopics.isNotEmpty) {
                               // Navigate to subtopics screen
@@ -240,8 +277,8 @@ class SubtopicsScreen extends StatelessWidget {
                   Text(
                     '${topic.subtopics.length} Subtopics',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
 
@@ -272,8 +309,41 @@ class SubtopicsScreen extends StatelessWidget {
                             subtopic.name,
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          trailing: const Icon(Icons.arrow_forward_ios),
+                          // Show "Coming Soon" badge if subtopic has no content
+                          trailing: (subtopic.quizQuestions.isEmpty)
+                              ? Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Text(
+                                    'Coming Soon',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                )
+                              : const Icon(Icons.arrow_forward_ios),
                           onTap: () {
+                            // Check if subtopic has content (quiz questions)
+                            if (subtopic.quizQuestions.isEmpty) {
+                              // Show message that content is coming soon
+                              Get.snackbar(
+                                'Coming Soon',
+                                'This subtopic content is being prepared and will be available soon!',
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.grey[700],
+                                colorText: Colors.white,
+                              );
+                              return;
+                            }
+
                             // Navigate to subtopic details screen
                             Get.to(
                               () => SubtopicDetailsScreen(
@@ -300,7 +370,7 @@ class SubtopicsScreen extends StatelessWidget {
 }
 
 // Subtopic Details Screen
-class SubtopicDetailsScreen extends StatelessWidget {
+class SubtopicDetailsScreen extends StatefulWidget {
   final Subtopic subtopic;
   final String topicName;
   final String courseName;
@@ -312,59 +382,166 @@ class SubtopicDetailsScreen extends StatelessWidget {
     required this.courseName,
   });
 
-  Future<void> _launchTutorialUrl(String urlString) async {
+  @override
+  State<SubtopicDetailsScreen> createState() => _SubtopicDetailsScreenState();
+}
+
+class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
+  late YoutubePlayerController? _youtubePlayerController;
+  VideoPlayerController? _videoPlayerController;
+  bool _videoInitialized = false;
+  bool _videoError = false;
+  bool _isYoutubeVideo = false;
+
+  @override
+  void initState() {
+    super.initState();
+    print(
+        'SubtopicDetailsScreen initState called for: ${widget.subtopic.name}');
+    print('Subtopic video URL: ${widget.subtopic.videoUrl}');
+    _initializeVideoPlayer();
+  }
+
+  @override
+  void dispose() {
+    _youtubePlayerController?.close();
+    _videoPlayerController?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initializeVideoPlayer() async {
+    print('Initializing video player for URL: ${widget.subtopic.videoUrl}');
+    // Only initialize if videoUrl is not empty
+    if (widget.subtopic.videoUrl.isNotEmpty) {
+      try {
+        // Check if it's a YouTube URL
+        if (_isYouTubeUrl(widget.subtopic.videoUrl)) {
+          print('Detected YouTube URL');
+          _isYoutubeVideo = true;
+
+          // Extract YouTube video ID
+          final videoId = _getYoutubeVideoId(widget.subtopic.videoUrl);
+          if (videoId != null) {
+            _youtubePlayerController = YoutubePlayerController(
+              params: const YoutubePlayerParams(
+                showControls: true,
+                mute: false,
+                showFullscreenButton: true,
+                loop: false,
+              ),
+            );
+
+            await _youtubePlayerController!.loadVideoById(videoId: videoId);
+            print('YouTube player initialized successfully');
+          } else {
+            print('Could not extract YouTube video ID');
+            setState(() {
+              _videoError = true;
+            });
+          }
+        } else {
+          print('Initializing regular video player');
+          _isYoutubeVideo = false;
+          _videoPlayerController = VideoPlayerController.networkUrl(
+            Uri.parse(widget.subtopic.videoUrl),
+          );
+
+          await _videoPlayerController!.initialize();
+          await _videoPlayerController!.setLooping(true);
+
+          setState(() {
+            _videoInitialized = true;
+          });
+          print('Regular video player initialized successfully');
+        }
+      } catch (e) {
+        print('Error initializing video player: $e');
+        setState(() {
+          _videoError = true;
+        });
+      }
+    } else {
+      print('No video URL provided for subtopic: ${widget.subtopic.name}');
+    }
+  }
+
+  bool _isYouTubeUrl(String url) {
+    return url.contains('youtube.com') || url.contains('youtu.be');
+  }
+
+  String? _getYoutubeVideoId(String url) {
     try {
-      final url = Uri.parse(urlString);
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url, mode: LaunchMode.externalApplication);
-      } else {
-        Get.snackbar(
-          'Error',
-          'Could not open the tutorial link',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
+      if (url.contains('youtube.com')) {
+        final uri = Uri.parse(url);
+        return uri.queryParameters['v'];
+      } else if (url.contains('youtu.be')) {
+        final uri = Uri.parse(url);
+        return uri.pathSegments.isNotEmpty ? uri.pathSegments[0] : null;
       }
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Invalid URL format',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      print('Error extracting YouTube video ID: $e');
     }
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
+    print('Building SubtopicDetailsScreen for: ${widget.subtopic.name}');
+    print('Video URL: ${widget.subtopic.videoUrl}');
+    print('Video URL is empty: ${widget.subtopic.videoUrl.isEmpty}');
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(subtopic.name),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        title: Text(widget.subtopic.name),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
+            // Header with subtopic info
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24.0),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              ),
-              child: Text(
-                '$courseName > $topicName',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.primary,
+                    Theme.of(context).colorScheme.secondary,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.topicName,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white.withOpacity(0.9),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.subtopic.name,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.courseName,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                ],
               ),
             ),
 
@@ -379,27 +556,27 @@ class SubtopicDetailsScreen extends StatelessWidget {
                   Text(
                     'Description',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.grey.withOpacity(0.1),
                           spreadRadius: 1,
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
+                          blurRadius: 3,
+                          offset: const Offset(0, 1),
                         ),
                       ],
                     ),
                     child: Text(
-                      subtopic.description,
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      widget.subtopic.description,
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                 ],
@@ -408,83 +585,222 @@ class SubtopicDetailsScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Tutorial Link
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Tutorial',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
+            // Tutorial Link Section
+            if (widget.subtopic.tutorialLink.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tutorial Link',
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: () async {
+                        final uri = Uri.parse(widget.subtopic.tutorialLink);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri);
+                        } else {
+                          if (mounted) {
+                            Get.snackbar(
+                              'Error',
+                              'Could not open the link',
+                              backgroundColor: Colors.red,
+                              colorText: Colors.white,
+                            );
+                          }
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Learn more about this subtopic:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        InkWell(
-                          onTap: () {
-                            // Open tutorial link
-                            // In a real app, you would use url_launcher package
-                            _launchTutorialUrl(subtopic.tutorialLink);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.link),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    subtopic.tutorialLink,
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.link),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                widget.subtopic.tutorialLink,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  decoration: TextDecoration.underline,
                                 ),
-                              ],
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(height: 24),
+            ],
 
-            const SizedBox(height: 24),
+            // Video Player Section
+            if (widget.subtopic.videoUrl.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Video Tutorial',
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            spreadRadius: 1,
+                            blurRadius: 5,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          if (_videoError)
+                            Container(
+                              height: 200,
+                              padding: const EdgeInsets.all(16),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.error_outline,
+                                      size: 48,
+                                      color: Colors.red,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    const Text(
+                                      'Failed to load video',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'The video could not be loaded. Please check the video URL or try again later.',
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium,
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ElevatedButton(
+                                      onPressed: _initializeVideoPlayer,
+                                      child: const Text('Retry'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else if (_isYoutubeVideo &&
+                              _youtubePlayerController != null)
+                            Container(
+                              height: 200,
+                              child: YoutubePlayer(
+                                controller: _youtubePlayerController!,
+                                aspectRatio: 16 / 9,
+                              ),
+                            )
+                          else if (_videoInitialized &&
+                              _videoPlayerController != null)
+                            AspectRatio(
+                              aspectRatio:
+                                  _videoPlayerController!.value.aspectRatio,
+                              child: VideoPlayer(_videoPlayerController!),
+                            )
+                          else if (widget.subtopic.videoUrl.isNotEmpty)
+                            Container(
+                              height: 200,
+                              padding: const EdgeInsets.all(16),
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            )
+                          else
+                            Container(
+                              height: 200,
+                              padding: const EdgeInsets.all(16),
+                              child: const Center(
+                                child: Text('No video available'),
+                              ),
+                            ),
+                          if (!_isYoutubeVideo &&
+                              _videoInitialized &&
+                              _videoPlayerController != null)
+                            VideoProgressIndicator(
+                              _videoPlayerController!,
+                              allowScrubbing: true,
+                            ),
+                          if (!_isYoutubeVideo &&
+                              _videoInitialized &&
+                              _videoPlayerController != null)
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      _videoPlayerController!.value.isPlaying
+                                          ? Icons.pause
+                                          : Icons.play_arrow,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        if (_videoPlayerController!
+                                            .value.isPlaying) {
+                                          _videoPlayerController!.pause();
+                                        } else {
+                                          _videoPlayerController!.play();
+                                        }
+                                      });
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.replay),
+                                    onPressed: () {
+                                      _videoPlayerController!.seekTo(
+                                        Duration.zero,
+                                      );
+                                      _videoPlayerController!.play();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
 
             // Quiz Button
             Padding(
@@ -497,9 +813,9 @@ class SubtopicDetailsScreen extends StatelessWidget {
                     // Navigate to quiz screen
                     Get.to(
                       () => SubtopicQuizScreen(
-                        subtopic: subtopic,
-                        topicName: topicName,
-                        courseName: courseName,
+                        subtopic: widget.subtopic,
+                        topicName: widget.topicName,
+                        courseName: widget.courseName,
                       ),
                     );
                   },
@@ -719,8 +1035,7 @@ class _SubtopicQuizScreenState extends State<SubtopicQuizScreen> {
           children: [
             // Progress bar
             LinearProgressIndicator(
-              value:
-                  (currentQuestionIndex + 1) /
+              value: (currentQuestionIndex + 1) /
                   widget.subtopic.quizQuestions.length,
               minHeight: 5,
             ),
@@ -881,8 +1196,8 @@ class TopicDetailsScreen extends StatelessWidget {
                   Text(
                     'Description',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 12),
                   Container(
@@ -919,8 +1234,8 @@ class TopicDetailsScreen extends StatelessWidget {
                   Text(
                     'Tutorial',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 12),
                   Container(
@@ -949,8 +1264,10 @@ class TopicDetailsScreen extends StatelessWidget {
                           onTap: () {
                             // Open tutorial link
                             // In a real app, you would use url_launcher package
-                            launchUrl(Uri.parse(topic.tutorialLink),
-                                mode: LaunchMode.externalApplication);
+                            launchUrl(
+                              Uri.parse(topic.tutorialLink),
+                              mode: LaunchMode.externalApplication,
+                            );
                           },
                           child: Container(
                             padding: const EdgeInsets.all(12),
@@ -1212,8 +1529,7 @@ class _QuizScreenState extends State<QuizScreen> {
           children: [
             // Progress bar
             LinearProgressIndicator(
-              value:
-                  (currentQuestionIndex + 1) /
+              value: (currentQuestionIndex + 1) /
                   widget.topic.quizQuestions.length,
               minHeight: 5,
             ),

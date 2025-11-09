@@ -3,9 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
 import 'package:path/path.dart' as path;
+import 'package:skillorbit/services/firestore_user_service.dart';
+import 'package:skillorbit/controllers/course_controller.dart';
 
 class AuthController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirestoreUserService _userService = FirestoreUserService();
 
   // Observable variables for UI
   var isLoading = false.obs;
@@ -27,13 +30,43 @@ class AuthController extends GetxController {
         userName.value = user.displayName ?? '';
         userEmail.value = user.email ?? '';
         userPhotoUrl.value = user.photoURL ?? '';
+        // Update last login timestamp
+        _userService.updateUserLastLogin(user.uid).catchError((error) {
+          print('Failed to update last login timestamp: $error');
+        });
+        // Load user data when user logs in
+        _loadUserData();
       } else {
         userName.value = '';
         userEmail.value = '';
         userPhotoUrl.value = '';
+        // Clear user data when user logs out
+        _clearUserData();
       }
       print('Auth state changed: ${user?.uid ?? "null"}');
     });
+  }
+
+  /// Load user data when user logs in
+  Future<void> _loadUserData() async {
+    try {
+      final courseController = Get.find<CourseController>();
+      await courseController.loadUserData();
+      print('User data loaded successfully');
+    } catch (e) {
+      print('Error loading user data: $e');
+    }
+  }
+
+  /// Clear user data when user logs out
+  void _clearUserData() {
+    try {
+      final courseController = Get.find<CourseController>();
+      courseController.clearUserData();
+      print('User data cleared successfully');
+    } catch (e) {
+      print('Error clearing user data: $e');
+    }
   }
 
   /// Sign up with email, password, username and photo URL
@@ -48,16 +81,30 @@ class AuthController extends GetxController {
       print('Attempting to create user with email: $email');
       UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(email: email, password: password);
-      
+
       // Update user profile with username and photo
       await userCredential.user?.updateDisplayName(username);
       await userCredential.user?.updatePhotoURL(photoUrl);
       await userCredential.user?.reload();
-      
+
+      // Create user document in Firestore
+      try {
+        await _userService.createUserDocument(
+          userCredential.user!.uid,
+          email,
+          username,
+          photoUrl,
+        );
+      } catch (e) {
+        print('Warning: Failed to create user document in Firestore: $e');
+        // Even if Firestore creation fails, we still want to allow the user to sign up
+        // The document will be created when they first try to enroll in a course
+      }
+
       // Update observable values
       userName.value = username;
       userPhotoUrl.value = photoUrl;
-      
+
       isLoading.value = false;
       print('User created successfully with UID: ${userCredential.user?.uid}');
       return null; // Return null on success
@@ -131,8 +178,10 @@ class AuthController extends GetxController {
       final storageRef = FirebaseStorage.instance
           .ref()
           .child('profile_pictures')
-          .child('${DateTime.now().millisecondsSinceEpoch}${path.extension(imageFile.path)}');
-      
+          .child(
+            '${DateTime.now().millisecondsSinceEpoch}${path.extension(imageFile.path)}',
+          );
+
       await storageRef.putFile(imageFile);
       return await storageRef.getDownloadURL();
     } catch (e) {
@@ -142,18 +191,22 @@ class AuthController extends GetxController {
   }
 
   /// Update user profile (username and photo)
-  Future<String?> updateProfile(String username, String photoUrl, {File? imageFile}) async {
+  Future<String?> updateProfile(
+    String username,
+    String photoUrl, {
+    File? imageFile,
+  }) async {
     try {
       isLoading.value = true;
       User? user = _auth.currentUser;
-      
+
       if (user == null) {
         isLoading.value = false;
         return 'No user logged in';
       }
 
       String? photoUrlToUse = photoUrl;
-      
+
       // If a new image file is provided, upload it first
       if (imageFile != null) {
         final downloadUrl = await _uploadImage(imageFile);
@@ -163,23 +216,23 @@ class AuthController extends GetxController {
         }
         photoUrlToUse = downloadUrl;
       }
-      
+
       // Only update display name if it has changed
       if (user.displayName != username) {
         await user.updateDisplayName(username);
       }
-      
+
       // Only update photo URL if it has changed
       if (user.photoURL != photoUrlToUse) {
         await user.updatePhotoURL(photoUrlToUse);
       }
-      
+
       await user.reload();
-      
+
       // Update observable values
       userName.value = username;
       userPhotoUrl.value = photoUrlToUse ?? '';
-      
+
       isLoading.value = false;
       return null; // Success
     } catch (e) {
@@ -190,25 +243,28 @@ class AuthController extends GetxController {
   }
 
   /// Change password
-  Future<String?> changePassword(String currentPassword, String newPassword) async {
+  Future<String?> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
     try {
       isLoading.value = true;
       User? user = _auth.currentUser;
-      
+
       if (user == null || user.email == null) {
         isLoading.value = false;
         return 'No user logged in';
       }
-      
+
       // Re-authenticate user before changing password
       AuthCredential credential = EmailAuthProvider.credential(
         email: user.email!,
         password: currentPassword,
       );
-      
+
       await user.reauthenticateWithCredential(credential);
       await user.updatePassword(newPassword);
-      
+
       isLoading.value = false;
       return null; // Success
     } on FirebaseAuthException catch (e) {
