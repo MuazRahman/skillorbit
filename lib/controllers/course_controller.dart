@@ -204,7 +204,7 @@ class CourseController extends GetxController {
         return AssetsPath.javaIconSvg;
       // return 'assets/images/java_svg.svg';
       case 'database':
-        return AssetsPath.javaIconSvg;
+        return AssetsPath.databaseIconSvg;
       // return 'assets/images/database_svg.svg';
       case 'mysql':
         return AssetsPath.mysqlIconSvg;

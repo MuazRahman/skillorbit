@@ -4,10 +4,10 @@ import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/models/course_model.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:video_player/video_player.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+
 import 'package:skillorbit/controllers/theme_controller.dart';
 import 'package:skillorbit/widgets/app_bar_widget.dart';
+import 'package:skillorbit/widgets/video_player_widget.dart';
 
 class EnrolledCourseScreen extends StatefulWidget {
   final Course course;
@@ -387,101 +387,11 @@ class SubtopicDetailsScreen extends StatefulWidget {
 }
 
 class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
-  late YoutubePlayerController? _youtubePlayerController;
-  VideoPlayerController? _videoPlayerController;
-  bool _videoInitialized = false;
-  bool _videoError = false;
-  bool _isYoutubeVideo = false;
-
   @override
   void initState() {
     super.initState();
     print(
         'SubtopicDetailsScreen initState called for: ${widget.subtopic.name}');
-    print('Subtopic video URL: ${widget.subtopic.videoUrl}');
-    _initializeVideoPlayer();
-  }
-
-  @override
-  void dispose() {
-    _youtubePlayerController?.close();
-    _videoPlayerController?.dispose();
-    super.dispose();
-  }
-
-  Future<void> _initializeVideoPlayer() async {
-    print('Initializing video player for URL: ${widget.subtopic.videoUrl}');
-    // Only initialize if videoUrl is not empty
-    if (widget.subtopic.videoUrl.isNotEmpty) {
-      try {
-        // Check if it's a YouTube URL
-        if (_isYouTubeUrl(widget.subtopic.videoUrl)) {
-          print('Detected YouTube URL');
-          _isYoutubeVideo = true;
-
-          // Extract YouTube video ID
-          final videoId = _getYoutubeVideoId(widget.subtopic.videoUrl);
-          if (videoId != null) {
-            _youtubePlayerController = YoutubePlayerController(
-              params: const YoutubePlayerParams(
-                showControls: true,
-                mute: false,
-                showFullscreenButton: true,
-                loop: false,
-              ),
-            );
-
-            await _youtubePlayerController!.loadVideoById(videoId: videoId);
-            print('YouTube player initialized successfully');
-          } else {
-            print('Could not extract YouTube video ID');
-            setState(() {
-              _videoError = true;
-            });
-          }
-        } else {
-          print('Initializing regular video player');
-          _isYoutubeVideo = false;
-          _videoPlayerController = VideoPlayerController.networkUrl(
-            Uri.parse(widget.subtopic.videoUrl),
-          );
-
-          await _videoPlayerController!.initialize();
-          await _videoPlayerController!.setLooping(true);
-
-          setState(() {
-            _videoInitialized = true;
-          });
-          print('Regular video player initialized successfully');
-        }
-      } catch (e) {
-        print('Error initializing video player: $e');
-        setState(() {
-          _videoError = true;
-        });
-      }
-    } else {
-      print('No video URL provided for subtopic: ${widget.subtopic.name}');
-    }
-  }
-
-  bool _isYouTubeUrl(String url) {
-    return url.contains('youtube.com') || url.contains('youtu.be');
-  }
-
-  String? _getYoutubeVideoId(String url) {
-    try {
-      if (url.contains('youtube.com')) {
-        final uri = Uri.parse(url);
-        return uri.queryParameters['v'];
-      } else if (url.contains('youtu.be')) {
-        final uri = Uri.parse(url);
-        return uri.pathSegments.isNotEmpty ? uri.pathSegments[0] : null;
-      }
-    } catch (e) {
-      print('Error extracting YouTube video ID: $e');
-    }
-    return null;
   }
 
   @override
@@ -489,6 +399,9 @@ class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
     print('Building SubtopicDetailsScreen for: ${widget.subtopic.name}');
     print('Video URL: ${widget.subtopic.videoUrl}');
     print('Video URL is empty: ${widget.subtopic.videoUrl.isEmpty}');
+    print(
+        'Video URL contains youtube: ${widget.subtopic.videoUrl.contains('youtube')}');
+    print('Video URL length: ${widget.subtopic.videoUrl.length}');
 
     return Scaffold(
       appBar: AppBar(
@@ -585,6 +498,15 @@ class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
 
             const SizedBox(height: 24),
 
+            // Video Player Section
+            if (widget.subtopic.videoUrl.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: VideoPlayerWidget(videoUrl: widget.subtopic.videoUrl),
+              ),
+              const SizedBox(height: 24),
+            ],
+
             // Tutorial Link Section
             if (widget.subtopic.tutorialLink.isNotEmpty) ...[
               Padding(
@@ -641,159 +563,6 @@ class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-
-            // Video Player Section
-            if (widget.subtopic.videoUrl.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Video Tutorial',
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.1),
-                            spreadRadius: 1,
-                            blurRadius: 5,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          if (_videoError)
-                            Container(
-                              height: 200,
-                              padding: const EdgeInsets.all(16),
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.error_outline,
-                                      size: 48,
-                                      color: Colors.red,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    const Text(
-                                      'Failed to load video',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'The video could not be loaded. Please check the video URL or try again later.',
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    ElevatedButton(
-                                      onPressed: _initializeVideoPlayer,
-                                      child: const Text('Retry'),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                          else if (_isYoutubeVideo &&
-                              _youtubePlayerController != null)
-                            Container(
-                              height: 200,
-                              child: YoutubePlayer(
-                                controller: _youtubePlayerController!,
-                                aspectRatio: 16 / 9,
-                              ),
-                            )
-                          else if (_videoInitialized &&
-                              _videoPlayerController != null)
-                            AspectRatio(
-                              aspectRatio:
-                                  _videoPlayerController!.value.aspectRatio,
-                              child: VideoPlayer(_videoPlayerController!),
-                            )
-                          else if (widget.subtopic.videoUrl.isNotEmpty)
-                            Container(
-                              height: 200,
-                              padding: const EdgeInsets.all(16),
-                              child: const Center(
-                                child: CircularProgressIndicator(),
-                              ),
-                            )
-                          else
-                            Container(
-                              height: 200,
-                              padding: const EdgeInsets.all(16),
-                              child: const Center(
-                                child: Text('No video available'),
-                              ),
-                            ),
-                          if (!_isYoutubeVideo &&
-                              _videoInitialized &&
-                              _videoPlayerController != null)
-                            VideoProgressIndicator(
-                              _videoPlayerController!,
-                              allowScrubbing: true,
-                            ),
-                          if (!_isYoutubeVideo &&
-                              _videoInitialized &&
-                              _videoPlayerController != null)
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  IconButton(
-                                    icon: Icon(
-                                      _videoPlayerController!.value.isPlaying
-                                          ? Icons.pause
-                                          : Icons.play_arrow,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        if (_videoPlayerController!
-                                            .value.isPlaying) {
-                                          _videoPlayerController!.pause();
-                                        } else {
-                                          _videoPlayerController!.play();
-                                        }
-                                      });
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.replay),
-                                    onPressed: () {
-                                      _videoPlayerController!.seekTo(
-                                        Duration.zero,
-                                      );
-                                      _videoPlayerController!.play();
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
                       ),
                     ),
                   ],
