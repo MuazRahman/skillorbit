@@ -192,10 +192,10 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
           Container(
             height: 200,
             width: double.infinity,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: Colors.black,
               borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(12)),
+                  BorderRadius.vertical(top: Radius.circular(12)),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
