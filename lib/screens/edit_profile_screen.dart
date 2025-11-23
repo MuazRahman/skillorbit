@@ -57,9 +57,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
 
       if (image != null) {
+        final imageFile = File(image.path);
         setState(() {
-          _selectedImage = File(image.path);
+          _selectedImage = imageFile;
         });
+
+        // Convert to base64 for storage in Firestore
+        try {
+          final bytes = await imageFile.readAsBytes();
+          final extension = image.path.split('.').last.toLowerCase();
+          String mimeType = 'image/jpeg'; // default
+          if (extension == 'png') {
+            mimeType = 'image/png';
+          } else if (extension == 'gif') {
+            mimeType = 'image/gif';
+          } else if (extension == 'webp') {
+            mimeType = 'image/webp';
+          }
+          _base64Image = 'data:$mimeType;base64,${base64Encode(bytes)}';
+          _profilePictureController.text = _base64Image!;
+        } catch (e) {
+          print('Error encoding image to base64: $e');
+        }
 
         Get.snackbar(
           'Success',

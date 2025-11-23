@@ -321,4 +321,66 @@ class FirestoreUserService {
       rethrow;
     }
   }
+
+  /// Updates user profile information in Firestore
+  ///
+  /// Updates the username and photoUrl fields for a user document.
+  /// If the user document doesn't exist, it will be created first.
+  ///
+  /// [uid] - The Firebase UID of the user
+  /// [username] - The new username/display name of the user
+  /// [photoUrl] - The new profile photo URL (base64 encoded string) of the user
+  Future<void> updateUserProfile(
+    String uid,
+    String username,
+    String photoUrl,
+  ) async {
+    try {
+      print('Updating user profile for UID: $uid');
+
+      // Ensure the user document exists before trying to update it
+      await ensureUserDocumentExists(uid);
+
+      await _firestore.collection('users').doc(uid).update({
+        'username': username,
+        'photoUrl': photoUrl,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      print('User profile updated successfully for UID: $uid');
+    } catch (e) {
+      print('Error updating user profile for UID $uid: $e');
+      rethrow;
+    }
+  }
+
+  /// Gets user profile information from Firestore
+  ///
+  /// Retrieves the username and photoUrl for a user document.
+  ///
+  /// [uid] - The Firebase UID of the user
+  /// Returns a map with 'username' and 'photoUrl' keys, or null if document doesn't exist
+  Future<Map<String, String>?> getUserProfile(String uid) async {
+    try {
+      print('Fetching user profile for UID: $uid');
+
+      final userDoc = await _firestore.collection('users').doc(uid).get();
+
+      if (userDoc.exists && userDoc.data() != null) {
+        final data = userDoc.data()!;
+        final profile = <String, String>{
+          'username': data['username'] as String? ?? '',
+          'photoUrl': data['photoUrl'] as String? ?? '',
+        };
+        print('User profile fetched successfully for UID: $uid');
+        return profile;
+      }
+
+      print('User profile not found for UID: $uid');
+      return null;
+    } catch (e) {
+      print('Error fetching user profile for UID $uid: $e');
+      return null;
+    }
+  }
 }

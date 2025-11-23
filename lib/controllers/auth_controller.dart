@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
@@ -29,12 +30,13 @@ class AuthController extends GetxController {
       if (user != null) {
         userName.value = user.displayName ?? '';
         userEmail.value = user.email ?? '';
-        userPhotoUrl.value = user.photoURL ?? '';
+        // Don't load photoUrl from Auth - it will be loaded from Firestore
+        userPhotoUrl.value = '';
         // Update last login timestamp
         _userService.updateUserLastLogin(user.uid).catchError((error) {
           print('Failed to update last login timestamp: $error');
         });
-        // Load user data when user logs in
+        // Load user data when user logs in (including photoUrl from Firestore)
         _loadUserData();
       } else {
         userName.value = '';
@@ -52,6 +54,27 @@ class AuthController extends GetxController {
     try {
       final courseController = Get.find<CourseController>();
       await courseController.loadUserData();
+      
+      // Also load user profile from Firestore to get the base64 encoded photoUrl
+      final user = _auth.currentUser;
+      if (user != null) {
+        try {
+          final profile = await _userService.getUserProfile(user.uid);
+          if (profile != null) {
+            // Update username and photoUrl from Firestore if available
+            if (profile['username']?.isNotEmpty == true) {
+              userName.value = profile['username']!;
+            }
+            if (profile['photoUrl']?.isNotEmpty == true) {
+              userPhotoUrl.value = profile['photoUrl']!;
+            }
+          }
+        } catch (e) {
+          print('Warning: Failed to load user profile from Firestore: $e');
+          // Continue even if Firestore load fails
+        }
+      }
+      
       print('User data loaded successfully');
     } catch (e) {
       print('Error loading user data: $e');
@@ -82,9 +105,10 @@ class AuthController extends GetxController {
       UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      // Update user profile with username and photo
+      // Update user profile with username
       await userCredential.user?.updateDisplayName(username);
-      await userCredential.user?.updatePhotoURL(photoUrl);
+      // Don't update Firebase Auth's photoURL with base64 string (it's too long)
+      // We'll only store it in Firestore
       await userCredential.user?.reload();
 
       // Create user document in Firestore
@@ -172,20 +196,24 @@ class AuthController extends GetxController {
     }
   }
 
-  /// Upload image to Firebase Storage and return download URL
-  Future<String?> _uploadImage(File imageFile) async {
+  /// Encode image file to base64 string
+  Future<String?> _encodeImageToBase64(File imageFile) async {
     try {
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('profile_pictures')
-          .child(
-            '${DateTime.now().millisecondsSinceEpoch}${path.extension(imageFile.path)}',
-          );
-
-      await storageRef.putFile(imageFile);
-      return await storageRef.getDownloadURL();
+      final bytes = await imageFile.readAsBytes();
+      // Determine image type from file extension
+      final extension = path.extension(imageFile.path).toLowerCase();
+      String mimeType = 'image/jpeg'; // default
+      if (extension == '.png') {
+        mimeType = 'image/png';
+      } else if (extension == '.gif') {
+        mimeType = 'image/gif';
+      } else if (extension == '.webp') {
+        mimeType = 'image/webp';
+      }
+      final base64String = base64Encode(bytes);
+      return 'data:$mimeType;base64,$base64String';
     } catch (e) {
-      print('Error uploading image: $e');
+      print('Error encoding image to base64: $e');
       return null;
     }
   }
@@ -207,14 +235,14 @@ class AuthController extends GetxController {
 
       String? photoUrlToUse = photoUrl;
 
-      // If a new image file is provided, upload it first
+      // If a new image file is provided, encode it as base64 string
       if (imageFile != null) {
-        final downloadUrl = await _uploadImage(imageFile);
-        if (downloadUrl == null) {
+        final base64String = await _encodeImageToBase64(imageFile);
+        if (base64String == null) {
           isLoading.value = false;
-          return 'Failed to upload profile picture';
+          return 'Failed to encode profile picture';
         }
-        photoUrlToUse = downloadUrl;
+        photoUrlToUse = base64String;
       }
 
       // Only update display name if it has changed
@@ -222,12 +250,32 @@ class AuthController extends GetxController {
         await user.updateDisplayName(username);
       }
 
-      // Only update photo URL if it has changed
-      if (user.photoURL != photoUrlToUse) {
-        await user.updatePhotoURL(photoUrlToUse);
+      // Don't update Firebase Auth's photoURL with base64 string (it's too long)
+      // We'll only store it in Firestore. Clear photoURL in Auth if it was set before
+      if (user.photoURL != null && user.photoURL!.isNotEmpty) {
+        // Only clear if it's a base64 string (starts with data:image)
+        if (user.photoURL!.startsWith('data:image')) {
+          try {
+            await user.updatePhotoURL('');
+          } catch (e) {
+            print('Warning: Failed to clear photoURL in Auth: $e');
+          }
+        }
       }
 
       await user.reload();
+
+      // Update Firestore with the new profile data (base64 string stored here)
+      try {
+        await _userService.updateUserProfile(
+          user.uid,
+          username,
+          photoUrlToUse ?? '',
+        );
+      } catch (e) {
+        print('Warning: Failed to update user profile in Firestore: $e');
+        // Continue even if Firestore update fails
+      }
 
       // Update observable values
       userName.value = username;
