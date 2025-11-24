@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/controllers/auth_controller.dart';
+import 'package:skillorbit/controllers/dashboard_controller.dart';
 import 'package:skillorbit/core/app_color.dart';
 import 'package:skillorbit/screens/auth/login_screen.dart';
 
@@ -72,30 +73,31 @@ class CourseDetailsScreen extends StatelessWidget {
                       height: 80,
                       child: course != null && course.icon.isNotEmpty
                           ? (course.icon.contains('.svg')
-                                ? SvgPicture.asset(
-                                    course.icon,
-                                    fit: BoxFit.contain,
-                                    placeholderBuilder: (context) => Icon(
-                                      _getIconForCourse(courseName),
-                                      size: 80,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : course.icon.contains('.png')
-                                ? Image.asset(
-                                    course.icon, 
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (context, error, stackTrace) => Icon(
-                                      _getIconForCourse(courseName),
-                                      size: 80,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : Icon(
+                              ? SvgPicture.asset(
+                                  course.icon,
+                                  fit: BoxFit.contain,
+                                  placeholderBuilder: (context) => Icon(
                                     _getIconForCourse(courseName),
                                     size: 80,
                                     color: Colors.white,
-                                  ))
+                                  ),
+                                )
+                              : course.icon.contains('.png')
+                                  ? Image.asset(
+                                      course.icon,
+                                      fit: BoxFit.contain,
+                                      errorBuilder:
+                                          (context, error, stackTrace) => Icon(
+                                        _getIconForCourse(courseName),
+                                        size: 80,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : Icon(
+                                      _getIconForCourse(courseName),
+                                      size: 80,
+                                      color: Colors.white,
+                                    ))
                           : Icon(
                               _getIconForCourse(courseName),
                               size: 80,
@@ -132,8 +134,8 @@ class CourseDetailsScreen extends StatelessWidget {
                   Text(
                     'About this course',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 12),
                   Container(
@@ -170,8 +172,8 @@ class CourseDetailsScreen extends StatelessWidget {
                   Text(
                     'What you\'ll learn',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                   const SizedBox(height: 16),
 
@@ -181,11 +183,11 @@ class CourseDetailsScreen extends StatelessWidget {
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 2,
-                        ),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 2,
+                    ),
                     itemCount: topics.length,
                     itemBuilder: (context, index) {
                       return Container(
@@ -207,7 +209,9 @@ class CourseDetailsScreen extends StatelessWidget {
                             child: Text(
                               topics[index],
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
                                   ?.copyWith(fontWeight: FontWeight.w500),
                             ),
                           ),
@@ -235,7 +239,7 @@ class CourseDetailsScreen extends StatelessWidget {
                       Get.snackbar(
                         'Login Required',
                         'Please login to enroll in courses',
-                        backgroundColor: Colors.orange,
+                        backgroundColor: Colors.amber,
                         colorText: Colors.white,
                         duration: const Duration(seconds: 3),
                         mainButton: TextButton(
@@ -275,14 +279,28 @@ class CourseDetailsScreen extends StatelessWidget {
                         // Add course to enrolled courses
                         courseController.enrollCourse(course);
 
-                        // Show success message
+                        // Show success message and then navigate to My Course section
                         Get.snackbar(
                           'Success',
                           '$courseName has been added to your courses!',
                           backgroundColor: Colors.green,
                           colorText: Colors.white,
-                          duration: const Duration(seconds: 2),
+                          duration: const Duration(milliseconds: 1500),
                         );
+
+                        // Navigate to My Course section after a short delay
+                        Future.delayed(const Duration(milliseconds: 1600), () {
+                          // Get the dashboard controller and set the page index to 1 (My Course)
+                          final dashboardController =
+                              Get.find<DashBoardController>();
+                          dashboardController.currentPageIndex.value = 1;
+
+                          // Navigate back to dashboard if needed
+                          if (Get.currentRoute != null &&
+                              Get.currentRoute != '/dashboard') {
+                            Get.offAllNamed('/dashboard');
+                          }
+                        });
                       } else {
                         // Show error message if course not found
                         Get.snackbar(

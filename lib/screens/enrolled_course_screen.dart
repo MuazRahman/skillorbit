@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
+import 'package:skillorbit/controllers/dashboard_controller.dart';
 import 'package:skillorbit/models/course_model.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -633,6 +634,7 @@ class _SubtopicQuizScreenState extends State<SubtopicQuizScreen> {
   int currentQuestionIndex = 0;
   List<int?> selectedAnswers = [];
   bool showResults = false;
+  bool isQuizSubmitted = false;
   int score = 0;
   final courseController = Get.find<CourseController>();
 
@@ -654,11 +656,8 @@ class _SubtopicQuizScreenState extends State<SubtopicQuizScreen> {
         currentQuestionIndex++;
       });
     } else {
-      // Calculate score and show results
-      calculateScore();
-      setState(() {
-        showResults = true;
-      });
+      // Submit quiz when reaching the last question
+      submitQuiz();
     }
   }
 
@@ -699,8 +698,11 @@ class _SubtopicQuizScreenState extends State<SubtopicQuizScreen> {
         snackPosition: SnackPosition.BOTTOM,
       );
 
-      // Don't navigate away immediately, let the user see the snackbar
-      // The snackbar will be visible on the current page
+      // Update state to show "See Achievement" button
+      setState(() {
+        showResults = true;
+        isQuizSubmitted = true;
+      });
     } catch (e) {
       // Show error message
       Get.snackbar(
@@ -765,7 +767,16 @@ class _SubtopicQuizScreenState extends State<SubtopicQuizScreen> {
                   width: double.infinity,
                   height: 60,
                   child: ElevatedButton(
-                    onPressed: submitQuiz,
+                    onPressed: isQuizSubmitted
+                        ? () {
+                            // Navigate to profile screen to see achievements
+                            final dashboardController =
+                                Get.find<DashBoardController>();
+                            dashboardController.currentPageIndex.value =
+                                2; // Profile screen index
+                            Get.offAllNamed('/dashboard');
+                          }
+                        : submitQuiz,
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -776,7 +787,9 @@ class _SubtopicQuizScreenState extends State<SubtopicQuizScreen> {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text('Complete Subtopic'),
+                    child: Text(isQuizSubmitted
+                        ? 'See Achievement'
+                        : 'Complete Subtopic'),
                   ),
                 ),
               ),
@@ -1127,6 +1140,7 @@ class _QuizScreenState extends State<QuizScreen> {
   int currentQuestionIndex = 0;
   List<int?> selectedAnswers = [];
   bool showResults = false;
+  bool isQuizSubmitted = false;
   int score = 0;
   final courseController = Get.find<CourseController>();
 
@@ -1148,11 +1162,8 @@ class _QuizScreenState extends State<QuizScreen> {
         currentQuestionIndex++;
       });
     } else {
-      // Calculate score and show results
-      calculateScore();
-      setState(() {
-        showResults = true;
-      });
+      // Submit quiz when reaching the last question
+      submitQuiz();
     }
   }
 
@@ -1193,8 +1204,11 @@ class _QuizScreenState extends State<QuizScreen> {
         snackPosition: SnackPosition.BOTTOM,
       );
 
-      // Don't navigate away immediately, let the user see the snackbar
-      // The snackbar will be visible on the current page
+      // Update state to show "See Achievement" button
+      setState(() {
+        showResults = true;
+        isQuizSubmitted = true;
+      });
     } catch (e) {
       // Show error message
       Get.snackbar(
@@ -1259,7 +1273,16 @@ class _QuizScreenState extends State<QuizScreen> {
                   width: double.infinity,
                   height: 60,
                   child: ElevatedButton(
-                    onPressed: submitQuiz,
+                    onPressed: isQuizSubmitted
+                        ? () {
+                            // Navigate to profile screen to see achievements
+                            final dashboardController =
+                                Get.find<DashBoardController>();
+                            dashboardController.currentPageIndex.value =
+                                2; // Profile screen index
+                            Get.offAllNamed('/dashboard');
+                          }
+                        : submitQuiz,
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -1270,7 +1293,8 @@ class _QuizScreenState extends State<QuizScreen> {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text('Complete Topic'),
+                    child: Text(
+                        isQuizSubmitted ? 'See Achievement' : 'Complete Topic'),
                   ),
                 ),
               ),

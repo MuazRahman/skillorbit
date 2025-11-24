@@ -73,11 +73,27 @@ class FirestoreUserService {
 
       if (!userDoc.exists) {
         print('User document does not exist for UID: $uid, creating it now');
-        // Create the document with default values if email/username are not provided
+
+        // Try to get the current user's display name from Firebase Auth if not provided
+        String actualUsername = username ?? 'User';
+        if (_auth.currentUser != null &&
+            _auth.currentUser!.displayName != null &&
+            _auth.currentUser!.displayName!.isNotEmpty) {
+          actualUsername = _auth.currentUser!.displayName!;
+        }
+
+        String actualEmail = email ?? '';
+        if (_auth.currentUser != null &&
+            _auth.currentUser!.email != null &&
+            _auth.currentUser!.email!.isNotEmpty) {
+          actualEmail = _auth.currentUser!.email!;
+        }
+
+        // Create the document with proper values
         await _firestore.collection('users').doc(uid).set({
           'uid': uid,
-          'email': email ?? '',
-          'username': username ?? 'User',
+          'email': actualEmail,
+          'username': actualUsername,
           'photoUrl': photoUrl ?? '',
           'enrolledCourses': [],
           'achievements': [],
@@ -278,8 +294,8 @@ class FirestoreUserService {
                 Achievement(
                   topicName: achievementData['topicName'] as String,
                   courseName: achievementData['courseName'] as String,
-                  dateCompleted: (achievementData['dateCompleted'] as Timestamp)
-                      .toDate(),
+                  dateCompleted:
+                      (achievementData['dateCompleted'] as Timestamp).toDate(),
                 ),
               );
             }

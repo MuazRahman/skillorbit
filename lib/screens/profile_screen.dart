@@ -113,8 +113,34 @@ class ProfileScreen extends StatelessWidget {
                         }),
                         GestureDetector(
                           onTap: () {
-                            // Navigate to edit profile screen
-                            Get.to(() => const EditProfileScreen());
+                            // Check if user is logged in before allowing edit
+                            if (authController.isLoggedIn.value) {
+                              // Navigate to edit profile screen
+                              Get.to(() => const EditProfileScreen());
+                            } else {
+                              // Show snackbar to login with a login button
+                              Get.snackbar(
+                                'Login Required',
+                                'Please login to edit your profile',
+                                backgroundColor: Colors.amber,
+                                colorText: Colors.white,
+                                snackPosition: SnackPosition.BOTTOM,
+                                mainButton: TextButton(
+                                  onPressed: () {
+                                    Get.back(); // Close the snackbar
+                                    Get.toNamed(
+                                        '/login'); // Navigate to login screen
+                                  },
+                                  child: const Text(
+                                    'Log in',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
                           },
                           child: Container(
                             width: 30,
@@ -192,7 +218,9 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Learning Progress',
-                      style: Theme.of(context).textTheme.headlineSmall
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
@@ -254,7 +282,9 @@ class ProfileScreen extends StatelessWidget {
                       children: [
                         Text(
                           'My Courses',
-                          style: Theme.of(context).textTheme.headlineSmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Obx(
@@ -269,7 +299,6 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-
                     Obx(() {
                       if (courseController.enrolledCourses.isEmpty) {
                         return Center(
@@ -321,11 +350,11 @@ class ProfileScreen extends StatelessWidget {
                         physics: const NeverScrollableScrollPhysics(),
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                              childAspectRatio: 1.2,
-                            ),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 1.2,
+                        ),
                         itemCount: courseController.enrolledCourses.length,
                         itemBuilder: (context, index) {
                           final course =
@@ -351,7 +380,9 @@ class ProfileScreen extends StatelessWidget {
                       children: [
                         Text(
                           'Achievements',
-                          style: Theme.of(context).textTheme.headlineSmall
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Obx(
@@ -366,7 +397,6 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-
                     Obx(() {
                       if (courseController.achievements.isEmpty) {
                         return Center(
@@ -418,11 +448,11 @@ class ProfileScreen extends StatelessWidget {
                         physics: const NeverScrollableScrollPhysics(),
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                              childAspectRatio: 1.2,
-                            ),
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 1.2,
+                        ),
                         itemCount: courseController.achievements.length,
                         itemBuilder: (context, index) {
                           final achievement =
@@ -526,30 +556,31 @@ class ProfileScreen extends StatelessWidget {
             Expanded(
               child: course.icon.isNotEmpty
                   ? (course.icon.contains('.svg')
-                        ? SvgPicture.asset(
-                            course.icon,
-                            fit: BoxFit.contain,
-                            placeholderBuilder: (context) => Icon(
-                              Icons.school,
-                              size: 32,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          )
-                        : course.icon.contains('.png')
-                        ? Image.asset(
-                            course.icon,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => Icon(
-                              Icons.school,
-                              size: 32,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          )
-                        : Icon(
+                      ? SvgPicture.asset(
+                          course.icon,
+                          fit: BoxFit.contain,
+                          placeholderBuilder: (context) => Icon(
                             Icons.school,
                             size: 32,
                             color: Theme.of(context).colorScheme.primary,
-                          ))
+                          ),
+                        )
+                      : course.icon.contains('.png')
+                          ? Image.asset(
+                              course.icon,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
+                                Icons.school,
+                                size: 32,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            )
+                          : Icon(
+                              Icons.school,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.primary,
+                            ))
                   : Icon(
                       Icons.school,
                       size: 32,

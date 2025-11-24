@@ -26,8 +26,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _obscureNewPassword = true;
   bool _obscureConfirmPassword = true;
   bool _isChangingPassword = false;
-  File? _selectedImage;
-  String? _base64Image;
+
+  // Make these Rx variables for proper GetX usage
+  final Rx<File?> _selectedImage = Rx<File?>(null);
+  final RxString _base64Image = ''.obs;
 
   @override
   void initState() {
@@ -58,9 +60,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       if (image != null) {
         final imageFile = File(image.path);
-        setState(() {
-          _selectedImage = imageFile;
-        });
+        // Update Rx variables instead of using setState
+        _selectedImage.value = imageFile;
 
         // Convert to base64 for storage in Firestore
         try {
@@ -74,8 +75,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           } else if (extension == 'webp') {
             mimeType = 'image/webp';
           }
-          _base64Image = 'data:$mimeType;base64,${base64Encode(bytes)}';
-          _profilePictureController.text = _base64Image!;
+          _base64Image.value = 'data:$mimeType;base64,${base64Encode(bytes)}';
+          _profilePictureController.text = _base64Image.value;
         } catch (e) {
           print('Error encoding image to base64: $e');
         }
@@ -106,7 +107,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final result = await _authController.updateProfile(
         username,
         currentPhotoUrl,
-        imageFile: _selectedImage,
+        imageFile: _selectedImage.value,
       );
 
       if (result == null) {
@@ -205,57 +206,68 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Profile Picture Preview
+                // Profile Picture Preview - Fixed to use only GetX
                 Center(
                   child: Stack(
                     alignment: Alignment.bottomRight,
                     children: [
-                      _selectedImage != null
-                          ? CircleAvatar(
+                      Obx(() {
+                        // Use only GetX observables for UI updates
+                        if (_selectedImage.value != null) {
+                          return CircleAvatar(
+                            radius: 60,
+                            backgroundImage: FileImage(_selectedImage.value!),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                          );
+                        }
+
+                        final photoUrl =
+                            _profilePictureController.text.isNotEmpty
+                                ? _profilePictureController.text
+                                : _authController.userPhotoUrl.value;
+
+                        if (photoUrl.isEmpty) {
+                          return CircleAvatar(
+                            radius: 60,
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                            child: const Icon(Icons.person,
+                                size: 60, color: Colors.white),
+                          );
+                        }
+
+                        // Check if it's a base64 image
+                        if (photoUrl.startsWith('data:image')) {
+                          try {
+                            final base64String = photoUrl.split(',')[1];
+                            final bytes = base64Decode(base64String);
+                            return CircleAvatar(
                               radius: 60,
-                              backgroundImage: FileImage(_selectedImage!),
-                              backgroundColor: Theme.of(context).colorScheme.primary,
-                            )
-                          : Obx(() {
-                              final photoUrl = _profilePictureController.text.isNotEmpty
-                                  ? _profilePictureController.text
-                                  : _authController.userPhotoUrl.value;
-                              
-                              if (photoUrl.isEmpty) {
-                                return CircleAvatar(
-                                  radius: 60,
-                                  backgroundColor: Theme.of(context).colorScheme.primary,
-                                  child: const Icon(Icons.person, size: 60, color: Colors.white),
-                                );
-                              }
-                              
-                              // Check if it's a base64 image
-                              if (photoUrl.startsWith('data:image')) {
-                                try {
-                                  final base64String = photoUrl.split(',')[1];
-                                  final bytes = base64Decode(base64String);
-                                  return CircleAvatar(
-                                    radius: 60,
-                                    backgroundColor: Theme.of(context).colorScheme.primary,
-                                    backgroundImage: MemoryImage(bytes),
-                                  );
-                                } catch (e) {
-                                  return CircleAvatar(
-                                    radius: 60,
-                                    backgroundColor: Theme.of(context).colorScheme.primary,
-                                    child: const Icon(Icons.person, size: 60, color: Colors.white),
-                                  );
-                                }
-                              }
-                              
-                              // Otherwise, it's a network URL
-                              return CircleAvatar(
-                                radius: 60,
-                                backgroundColor: Theme.of(context).colorScheme.primary,
-                                backgroundImage: NetworkImage(photoUrl),
-                                onBackgroundImageError: (_, __) {},
-                              );
-                            }),
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              backgroundImage: MemoryImage(bytes),
+                            );
+                          } catch (e) {
+                            return CircleAvatar(
+                              radius: 60,
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              child: const Icon(Icons.person,
+                                  size: 60, color: Colors.white),
+                            );
+                          }
+                        }
+
+                        // Otherwise, it's a network URL
+                        return CircleAvatar(
+                          radius: 60,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          backgroundImage: NetworkImage(photoUrl),
+                          onBackgroundImageError: (_, __) {},
+                        );
+                      }),
                       Positioned(
                         bottom: 0,
                         right: 0,
@@ -280,7 +292,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Pick Image Button
                 Center(
                   child: TextButton.icon(
@@ -295,8 +307,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Text(
                   'Username',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -352,8 +364,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     Text(
                       'Change Password',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     Switch(
                       value: _isChangingPassword,
@@ -467,7 +479,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         ),
                         child: _authController.isLoading.value
-                            ? const CircularProgressIndicator(color: Colors.white)
+                            ? const CircularProgressIndicator(
+                                color: Colors.white)
                             : const Text(
                                 'Change Password',
                                 style: TextStyle(fontSize: 16),

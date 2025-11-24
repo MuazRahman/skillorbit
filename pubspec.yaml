@@ -43,6 +43,8 @@ dependencies:
   # YouTube Player
   youtube_player_flutter: ^9.1.3
 
+  # Flutter Launcher Icons
+  flutter_launcher_icons: ^0.14.0
 
 dev_dependencies:
   flutter_test:
@@ -54,4 +56,10 @@ flutter:
   assets:
     - assets/images/
     - assets/logo/
-    - assets/background/
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/logo/app_logo.png"
+  adaptive_icon_background: "#4CAF50"
+  adaptive_icon_foreground: "assets/logo/app_logo.png"

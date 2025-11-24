@@ -54,27 +54,41 @@ class AuthController extends GetxController {
     try {
       final courseController = Get.find<CourseController>();
       await courseController.loadUserData();
-      
+
       // Also load user profile from Firestore to get the base64 encoded photoUrl
       final user = _auth.currentUser;
       if (user != null) {
         try {
           final profile = await _userService.getUserProfile(user.uid);
           if (profile != null) {
-            // Update username and photoUrl from Firestore if available
+            // Update username from Firestore if available and not empty
             if (profile['username']?.isNotEmpty == true) {
               userName.value = profile['username']!;
             }
+            // Fallback to Firebase Auth displayName if Firestore username is empty
+            else if (user.displayName?.isNotEmpty == true) {
+              userName.value = user.displayName!;
+            }
+
+            // Update photoUrl from Firestore if available and not empty
             if (profile['photoUrl']?.isNotEmpty == true) {
               userPhotoUrl.value = profile['photoUrl']!;
             }
           }
+          // Fallback to Firebase Auth displayName if no profile found
+          else if (userName.value.isEmpty &&
+              user.displayName?.isNotEmpty == true) {
+            userName.value = user.displayName!;
+          }
         } catch (e) {
           print('Warning: Failed to load user profile from Firestore: $e');
-          // Continue even if Firestore load fails
+          // Fallback to Firebase Auth displayName if Firestore load fails
+          if (userName.value.isEmpty && user.displayName?.isNotEmpty == true) {
+            userName.value = user.displayName!;
+          }
         }
       }
-      
+
       print('User data loaded successfully');
     } catch (e) {
       print('Error loading user data: $e');
