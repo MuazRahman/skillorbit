@@ -656,7 +656,8 @@ class _SubtopicQuizScreenState extends State<SubtopicQuizScreen> {
         currentQuestionIndex++;
       });
     } else {
-      // Submit quiz when reaching the last question
+      // Calculate score and submit quiz when reaching the last question
+      calculateScore();
       submitQuiz();
     }
   }
@@ -1162,7 +1163,8 @@ class _QuizScreenState extends State<QuizScreen> {
         currentQuestionIndex++;
       });
     } else {
-      // Submit quiz when reaching the last question
+      // Calculate score and submit quiz when reaching the last question
+      calculateScore();
       submitQuiz();
     }
   }

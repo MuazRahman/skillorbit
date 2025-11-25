@@ -1,13 +1,11 @@
 // home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:skillorbit/controllers/auth_controller.dart';
 import 'package:skillorbit/controllers/home_screen_controller.dart';
 import 'package:skillorbit/controllers/theme_controller.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
-import 'package:skillorbit/models/course_model.dart';
 import 'package:skillorbit/screens/course_details_screen.dart';
 import 'package:skillorbit/widgets/gradient_circular_progress_indicator_widget.dart';
 import 'package:skillorbit/widgets/top_round_corner_widget.dart';
@@ -390,23 +388,23 @@ class HomeScreen extends StatelessWidget {
   }
 
   // Helper method to check if migration is needed
-  Future<bool> _checkIfMigrationNeeded() async {
-    try {
-      // Check if we have courses in Firestore
-      final firestore = FirebaseFirestore.instance;
-      final coursesSnapshot = await firestore
-          .collection('courses')
-          .limit(1)
-          .get();
-
-      // If we have no courses in Firestore, migration is needed
-      return coursesSnapshot.size == 0;
-    } catch (e) {
-      print('Error checking if migration is needed: $e');
-      // If there's an error, assume migration is needed
-      return true;
-    }
-  }
+  // Future<bool> _checkIfMigrationNeeded() async {
+  //   try {
+  //     // Check if we have courses in Firestore
+  //     final firestore = FirebaseFirestore.instance;
+  //     final coursesSnapshot = await firestore
+  //         .collection('courses')
+  //         .limit(1)
+  //         .get();
+  //
+  //     // If we have no courses in Firestore, migration is needed
+  //     return coursesSnapshot.size == 0;
+  //   } catch (e) {
+  //     print('Error checking if migration is needed: $e');
+  //     // If there's an error, assume migration is needed
+  //     return true;
+  //   }
+  // }
 
   // Helper method to calculate course progress - DEPRECATED
   // This method is no longer used as we're using the more accurate method from CourseController

@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
 import 'package:path/path.dart' as path;
 import 'package:skillorbit/services/firestore_user_service.dart';
