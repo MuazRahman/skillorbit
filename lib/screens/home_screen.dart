@@ -385,6 +385,7 @@ class HomeScreen extends StatelessWidget {
     });
   }
 
+
   // Updated Course Progress Card to accept progress parameter
   Widget buildProgressCard(
     ThemeController themeController,
