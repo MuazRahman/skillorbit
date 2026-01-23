@@ -385,69 +385,6 @@ class HomeScreen extends StatelessWidget {
     });
   }
 
-  // Helper method to check if migration is needed
-  // Future<bool> _checkIfMigrationNeeded() async {
-  //   try {
-  //     // Check if we have courses in Firestore
-  //     final firestore = FirebaseFirestore.instance;
-  //     final coursesSnapshot = await firestore
-  //         .collection('courses')
-  //         .limit(1)
-  //         .get();
-  //
-  //     // If we have no courses in Firestore, migration is needed
-  //     return coursesSnapshot.size == 0;
-  //   } catch (e) {
-  //     print('Error checking if migration is needed: $e');
-  //     // If there's an error, assume migration is needed
-  //     return true;
-  //   }
-  // }
-
-  // Helper method to calculate course progress - DEPRECATED
-  // This method is no longer used as we're using the more accurate method from CourseController
-  // double _calculateCourseProgress(
-  //   Course course,
-  //   CourseController courseController,
-  // ) {
-  //   // Count achievements for this course
-  //   final courseAchievements = courseController.achievements
-  //       .where((achievement) => achievement.courseName == course.name)
-  //       .length;
-  //
-  //   // Calculate progress based on completed topics vs total topics
-  //   if (course.topics.isEmpty) return 0.0;
-  //
-  //   // Progress is based on achievements earned for this course
-  //   final progress = (courseAchievements / course.topics.length) * 100;
-  //   return progress.clamp(0.0, 100.0);
-  // }
-
-  // Search Box
-  // Widget buildSearchBar(BuildContext context) {
-  //   return TextField(
-  //     decoration: InputDecoration(
-  //       hintText: 'Search for courses...',
-  //       prefixIcon: Icon(
-  //         Icons.search,
-  //         color: Theme.of(context).colorScheme.primary,
-  //       ),
-  //       enabledBorder: OutlineInputBorder(
-  //         borderRadius: BorderRadius.circular(12),
-  //         borderSide: BorderSide(
-  //           color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
-  //         ),
-  //       ),
-  //       focusedBorder: OutlineInputBorder(
-  //         borderRadius: BorderRadius.circular(12),
-  //         borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-  //       ),
-  //       filled: true,
-  //       fillColor: Theme.of(context).colorScheme.surfaceContainerLow,
-  //     ),
-  //   );
-  // }
-
   // Updated Course Progress Card to accept progress parameter
   Widget buildProgressCard(
     ThemeController themeController,
