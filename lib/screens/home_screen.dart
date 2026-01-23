@@ -315,10 +315,8 @@ class HomeScreen extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
                 side: BorderSide(
-                  color: isEnrolled
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).dividerColor,
-                  width: isEnrolled ? 2 : 0.3,
+                  color: Theme.of(context).dividerColor,
+                  width: 0.3,
                 ),
               ),
               child: Column(

@@ -23,7 +23,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<Widget> pages = [
     const HomeScreen(),
     const MyCourseScreen(),
-    // Center(child: Text('AI Assistant')),
     ProfileScreen(),
   ];
 
