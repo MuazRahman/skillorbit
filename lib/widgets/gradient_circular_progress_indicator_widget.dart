@@ -13,7 +13,7 @@ class GradientCircularProgressIndicator extends StatelessWidget {
     super.key,
     required this.progress,
     this.strokeWidth = 10.0,
-    this.backgroundColor = Colors.grey,
+    this.backgroundColor = const Color(0xFFE2E8F0),
     this.gradient,
     this.child,
   });
@@ -29,10 +29,10 @@ class GradientCircularProgressIndicator extends StatelessWidget {
             const SweepGradient(
               colors: [
                 Colors.blue,
-                Colors.green,
-                Colors.yellow,
-                Colors.orange,
-                Colors.purple,
+                const Color(0xFF2563EB),
+                const Color(0xFF22C55E),
+                const Color(0xFFF59E0B),
+                const Color(0xFF3B82F6),
                 Colors.blue,
               ],
               startAngle: 0.0,

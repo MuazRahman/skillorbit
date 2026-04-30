@@ -12,12 +12,12 @@ class CourseController extends GetxController {
   var enrolledCourses = <Course>[].obs;
   var availableCourses = <Course>[].obs;
   var isCoursesLoading = false.obs;
-  
+
   // Lazy loaded data maps: Key is the parent ID
   var courseModules = <String, List<Module>>{}.obs;
   var moduleTopics = <String, List<Topic>>{}.obs;
   var parentQuizzes = <String, List<QuizQuestion>>{}.obs;
-  
+
   var achievements = <Achievement>[].obs;
 
   final FirestoreCourseService _firestoreService = FirestoreCourseService();
@@ -56,7 +56,7 @@ class CourseController extends GetxController {
       isCoursesLoading.value = true;
       print('Loading courses metadata from Firestore...');
       final coursesSnapshot = await _firestoreService.getAllCourses().first;
-      
+
       final courses = coursesSnapshot.docs.map((doc) {
         return Course.fromFirestore(doc);
       }).toList();
@@ -75,11 +75,12 @@ class CourseController extends GetxController {
     if (courseModules.containsKey(courseId)) {
       return courseModules[courseId]!;
     }
-    
+
     try {
       print('Lazy loading modules for course: $courseId');
       final snapshot = await _firestoreService.getCourseModules(courseId).first;
-      final modules = snapshot.docs.map((doc) => Module.fromFirestore(doc)).toList();
+      final modules =
+          snapshot.docs.map((doc) => Module.fromFirestore(doc)).toList();
       courseModules[courseId] = modules;
       return modules;
     } catch (e) {
@@ -93,11 +94,12 @@ class CourseController extends GetxController {
     if (moduleTopics.containsKey(moduleId)) {
       return moduleTopics[moduleId]!;
     }
-    
+
     try {
       print('Lazy loading topics for module: $moduleId');
       final snapshot = await _firestoreService.getModuleTopics(moduleId).first;
-      final topics = snapshot.docs.map((doc) => Topic.fromFirestore(doc)).toList();
+      final topics =
+          snapshot.docs.map((doc) => Topic.fromFirestore(doc)).toList();
       moduleTopics[moduleId] = topics;
       return topics;
     } catch (e) {
@@ -111,11 +113,12 @@ class CourseController extends GetxController {
     if (parentQuizzes.containsKey(parentId)) {
       return parentQuizzes[parentId]!;
     }
-    
+
     try {
       print('Lazy loading quizzes for parent: $parentId');
       final snapshot = await _firestoreService.getQuizQuestions(parentId).first;
-      final quizzes = snapshot.docs.map((doc) => QuizQuestion.fromFirestore(doc)).toList();
+      final quizzes =
+          snapshot.docs.map((doc) => QuizQuestion.fromFirestore(doc)).toList();
       parentQuizzes[parentId] = quizzes;
       return quizzes;
     } catch (e) {
@@ -148,7 +151,7 @@ class CourseController extends GetxController {
   double getOverallProgressBySubtopics() {
     if (enrolledCourses.isEmpty) return 0.0;
     // Real calculation would require all data to be loaded
-    return 0.0; 
+    return 0.0;
   }
 
   int getTotalSubtopicsForCourse(String courseName) {
@@ -180,7 +183,7 @@ class CourseController extends GetxController {
         final course = availableCourses.firstWhereOrNull((c) => c.name == name);
         if (course != null) newlyEnrolled.add(course);
       }
-      
+
       // Use assignAll for an atomic update to prevent "blink" issues
       enrolledCourses.assignAll(newlyEnrolled);
 
@@ -202,17 +205,28 @@ class CourseController extends GetxController {
   // Helper for icons (keep existing logic)
   String getCourseIcon(String courseName) {
     switch (courseName.toLowerCase()) {
-      case 'flutter': return AssetsPath.flutterIconSvg;
-      case 'c': return AssetsPath.cIconSvg;
-      case 'c++': return AssetsPath.cppIconSvg;
-      case 'java': return AssetsPath.javaIconSvg;
-      case 'database': return AssetsPath.databaseIconSvg;
-      case 'mysql': return AssetsPath.mysqlIconSvg;
-      case 'html': return AssetsPath.htmlIconSvg;
-      case 'python': return AssetsPath.pythonIconSvg;
-      case 'dart': return AssetsPath.dartIconSvg;
-      case 'react': return AssetsPath.reactIconSvg;
-      default: return AssetsPath.flutterIconSvg;
+      case 'flutter':
+        return AssetsPath.flutterIconSvg;
+      case 'c':
+        return AssetsPath.cIconSvg;
+      case 'c++':
+        return AssetsPath.cppIconSvg;
+      case 'java':
+        return AssetsPath.javaIconSvg;
+      case 'database':
+        return AssetsPath.databaseIconSvg;
+      case 'mysql':
+        return AssetsPath.mysqlIconSvg;
+      case 'html':
+        return AssetsPath.htmlIconSvg;
+      case 'python':
+        return AssetsPath.pythonIconSvg;
+      case 'dart':
+        return AssetsPath.dartIconSvg;
+      case 'react':
+        return AssetsPath.reactIconSvg;
+      default:
+        return AssetsPath.flutterIconSvg;
     }
   }
 }

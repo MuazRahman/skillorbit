@@ -101,7 +101,7 @@ class EnhancedAchievementsScreen extends StatelessWidget {
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.grey.withOpacity(0.1), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, 2)),
+          BoxShadow(color: const Color(0xFF64748B).withOpacity(0.1), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, 2)),
         ],
       ),
       child: Row(
@@ -113,7 +113,7 @@ class EnhancedAchievementsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(courseName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                Text('${achievements.length} topic(s) completed', style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                Text('${achievements.length} topic(s) completed', style: const TextStyle(fontSize: 14, color: Color(0xFF64748B))),
               ],
             ),
           ),
@@ -129,7 +129,7 @@ class EnhancedAchievementsScreen extends StatelessWidget {
     }
     return Column(
       children: achievements.map((a) => ListTile(
-        leading: const Icon(Icons.check_circle, color: Colors.green),
+        leading: const Icon(Icons.check_circle, color: Color(0xFF22C55E)),
         title: Text(a.topicName),
         subtitle: Text('${a.courseName} • ${_formatDate(a.dateCompleted)}'),
       )).toList(),

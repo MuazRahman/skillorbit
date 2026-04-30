@@ -44,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Get.snackbar(
           'Success',
           'Logged in successfully',
-          backgroundColor: Colors.green,
+          backgroundColor: const Color(0xFF22C55E),
           colorText: Colors.white,
         );
         // Navigate to dashboard
@@ -90,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+            colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
           ),
         ),
         child: SafeArea(
@@ -124,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           return const Icon(
                             Icons.school,
                             size: 60,
-                            color: Color(0xFF4CAF50),
+                            color: Color(0xFF2563EB),
                           );
                         },
                       ),
@@ -280,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: _authController.isLoading.value
                                   ? const CircularProgressIndicator(
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                        Color(0xFF4CAF50),
+                                        Color(0xFF2563EB),
                                       ),
                                     )
                                   : const Text(
@@ -288,7 +288,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF4CAF50),
+                                        color: Color(0xFF2563EB),
                                       ),
                                     ),
                             ),
@@ -330,3 +330,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+

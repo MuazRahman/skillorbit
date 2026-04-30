@@ -158,7 +158,7 @@ class ProfileScreen extends StatelessWidget {
                             child: const Icon(
                               Icons.edit,
                               size: 16,
-                              color: Colors.blue,
+                              color: Color(0xFF2563EB),
                             ),
                           ),
                         ),
@@ -294,7 +294,7 @@ class ProfileScreen extends StatelessWidget {
                             '${courseController.enrolledCourses.length} enrolled',
                             style: const TextStyle(
                               fontSize: 14,
-                              color: Colors.grey,
+                              color: const Color(0xFF64748B),
                             ),
                           ),
                         ),
@@ -311,7 +311,7 @@ class ProfileScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: const Color(0xFF64748B).withOpacity(0.1),
                                   spreadRadius: 1,
                                   blurRadius: 5,
                                   offset: const Offset(0, 2),
@@ -323,14 +323,14 @@ class ProfileScreen extends StatelessWidget {
                                 Icon(
                                   Icons.book_outlined,
                                   size: 48,
-                                  color: Colors.grey,
+                                  color: const Color(0xFF64748B),
                                 ),
                                 SizedBox(height: 16),
                                 Text(
                                   'No courses enrolled yet',
                                   style: TextStyle(
                                     fontSize: 18,
-                                    color: Colors.grey,
+                                    color: const Color(0xFF64748B),
                                   ),
                                 ),
                                 SizedBox(height: 8),
@@ -338,7 +338,7 @@ class ProfileScreen extends StatelessWidget {
                                   'Enroll in courses to start learning',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Colors.grey,
+                                    color: const Color(0xFF64748B),
                                   ),
                                 ),
                               ],
@@ -392,7 +392,7 @@ class ProfileScreen extends StatelessWidget {
                             '${courseController.achievements.length} earned',
                             style: const TextStyle(
                               fontSize: 14,
-                              color: Colors.grey,
+                              color: Color(0xFF64748B),
                             ),
                           ),
                         ),
@@ -409,7 +409,7 @@ class ProfileScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: const Color(0xFF64748B).withOpacity(0.1),
                                   spreadRadius: 1,
                                   blurRadius: 5,
                                   offset: const Offset(0, 2),
@@ -421,14 +421,14 @@ class ProfileScreen extends StatelessWidget {
                                 Icon(
                                   Icons.emoji_events_outlined,
                                   size: 48,
-                                  color: Colors.grey,
+                                  color: const Color(0xFF64748B),
                                 ),
                                 SizedBox(height: 16),
                                 Text(
                                   'No achievements yet',
                                   style: TextStyle(
                                     fontSize: 18,
-                                    color: Colors.grey,
+                                    color: const Color(0xFF64748B),
                                   ),
                                 ),
                                 SizedBox(height: 8),
@@ -436,7 +436,7 @@ class ProfileScreen extends StatelessWidget {
                                   'Complete courses to earn achievements',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Colors.grey,
+                                    color: const Color(0xFF64748B),
                                   ),
                                 ),
                               ],
@@ -466,7 +466,7 @@ class ProfileScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: const Color(0xFF64748B).withOpacity(0.1),
                                   spreadRadius: 1,
                                   blurRadius: 5,
                                   offset: const Offset(0, 2),
@@ -497,7 +497,7 @@ class ProfileScreen extends StatelessWidget {
                                   achievement.courseName,
                                   style: const TextStyle(
                                     fontSize: 10,
-                                    color: Colors.grey,
+                                    color: const Color(0xFF64748B),
                                   ),
                                   textAlign: TextAlign.center,
                                   maxLines: 1,
@@ -548,7 +548,7 @@ class ProfileScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: const Color(0xFF64748B).withOpacity(0.1),
               spreadRadius: 1,
               blurRadius: 5,
               offset: const Offset(0, 2),
@@ -622,7 +622,7 @@ class ProfileScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: const Color(0xFF64748B).withOpacity(0.1),
             spreadRadius: 1,
             blurRadius: 5,
             offset: const Offset(0, 2),
@@ -648,7 +648,7 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             title,
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
             textAlign: TextAlign.center,
           ),
         ],

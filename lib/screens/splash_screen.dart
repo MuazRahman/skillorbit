@@ -109,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen>
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        color: const Color(0xFF4CAF50), // Green background
+        color: const Color(0xFF2563EB), // Primary blue background
         child: SafeArea(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -122,7 +122,7 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Container(
                     padding: const EdgeInsets.all(30),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade100,
+                      color: const Color(0xFFDBEAFE),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
@@ -234,9 +234,9 @@ class _ModernProgressBar extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            Colors.white,
-                            Colors.white.withOpacity(0.9),
-                            Colors.white.withOpacity(0.7),
+                            const Color(0xFF93C5FD),
+                            const Color(0xFF60A5FA),
+                            const Color(0xFF3B82F6),
                           ],
                           stops: const [0.0, 0.7, 1.0],
                         ),

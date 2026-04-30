@@ -87,7 +87,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         Get.snackbar(
           'Success',
           'Profile picture selected! Click save to update your profile.',
-          backgroundColor: Colors.green,
+          backgroundColor: const Color(0xFF22C55E),
           colorText: Colors.white,
           duration: const Duration(seconds: 2),
         );
@@ -117,7 +117,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         Get.snackbar(
           'Success',
           'Profile updated successfully!',
-          backgroundColor: Colors.green,
+          backgroundColor: const Color(0xFF22C55E),
           colorText: Colors.white,
         );
         Get.back(); // Go back to profile screen
@@ -174,7 +174,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       Get.snackbar(
         'Success',
         'Password changed successfully!',
-        backgroundColor: Colors.green,
+        backgroundColor: const Color(0xFF22C55E),
         colorText: Colors.white,
       );
       // Clear password fields
@@ -476,7 +476,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             ? null
                             : _handleChangePassword,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
+                          backgroundColor: const Color(0xFFF59E0B),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -501,3 +501,4 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 }
+

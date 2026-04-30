@@ -31,7 +31,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Get.snackbar(
           'Email Sent',
           'Password reset link has been sent to $email. Please check your inbox.',
-          backgroundColor: Colors.green,
+          backgroundColor: const Color(0xFF22C55E),
           colorText: Colors.white,
           duration: const Duration(seconds: 5),
         );
@@ -62,7 +62,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+            colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
           ),
         ),
         child: SafeArea(
@@ -102,7 +102,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     child: const Icon(
                       Icons.lock_reset,
                       size: 60,
-                      color: Color(0xFF4CAF50),
+                      color: Color(0xFF2563EB),
                     ),
                   ),
 
@@ -191,7 +191,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                   : _handlePasswordReset,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
-                                foregroundColor: const Color(0xFF4CAF50),
+                                foregroundColor: const Color(0xFF2563EB),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30),
                                 ),
@@ -204,7 +204,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
                                         valueColor: AlwaysStoppedAnimation<Color>(
-                                          Color(0xFF4CAF50),
+                                          Color(0xFF2563EB),
                                         ),
                                       ),
                                     )
@@ -278,3 +278,5 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 }
+
+

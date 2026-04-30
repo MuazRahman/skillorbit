@@ -199,7 +199,7 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: const Color(0xFF64748B).withOpacity(0.1),
                                   spreadRadius: 1,
                                   blurRadius: 3,
                                   offset: const Offset(0, 1),
@@ -343,7 +343,7 @@ class _ModuleTopicsScreenState extends State<ModuleTopicsScreen> {
                               borderRadius: BorderRadius.circular(12),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.1),
+                                  color: const Color(0xFF64748B).withOpacity(0.1),
                                   spreadRadius: 1,
                                   blurRadius: 3,
                                   offset: const Offset(0, 1),
@@ -480,7 +480,7 @@ class _TopicDetailsScreenState extends State<TopicDetailsScreen> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: const Color(0xFF64748B).withOpacity(0.1),
                           spreadRadius: 1,
                           blurRadius: 3,
                           offset: const Offset(0, 1),

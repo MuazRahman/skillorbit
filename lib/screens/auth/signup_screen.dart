@@ -72,7 +72,7 @@ class _SignupScreenState extends State<SignupScreen> {
         Get.snackbar(
           'Success',
           'Profile picture selected!',
-          backgroundColor: Colors.green,
+          backgroundColor: const Color(0xFF22C55E),
           colorText: Colors.white,
           duration: const Duration(seconds: 2),
         );
@@ -106,7 +106,7 @@ class _SignupScreenState extends State<SignupScreen> {
         Get.snackbar(
           'Success',
           'Account created successfully!',
-          backgroundColor: Colors.green,
+          backgroundColor: const Color(0xFF22C55E),
           colorText: Colors.white,
         );
         // Navigate to dashboard (user is auto-logged in by Firebase)
@@ -135,7 +135,7 @@ class _SignupScreenState extends State<SignupScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF4CAF50), Color(0xFF388E3C)],
+            colors: [Color(0xFF2563EB), Color(0xFF1E40AF)],
           ),
         ),
         child: SafeArea(
@@ -169,7 +169,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           return const Icon(
                             Icons.school,
                             size: 60,
-                            color: Color(0xFF4CAF50),
+                            color: Color(0xFF2563EB),
                           );
                         },
                       ),
@@ -445,7 +445,7 @@ class _SignupScreenState extends State<SignupScreen> {
                               child: _authController.isLoading.value
                                   ? const CircularProgressIndicator(
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                        Color(0xFF4CAF50),
+                                        Color(0xFF2563EB),
                                       ),
                                     )
                                   : const Text(
@@ -453,7 +453,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
-                                        color: Color(0xFF4CAF50),
+                                        color: Color(0xFF2563EB),
                                       ),
                                     ),
                             ),
@@ -495,3 +495,4 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 }
+

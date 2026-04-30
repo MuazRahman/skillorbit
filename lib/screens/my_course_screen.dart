@@ -59,7 +59,7 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
         Get.snackbar(
           'Refreshed',
           'Your courses have been updated!',
-          backgroundColor: Colors.green,
+          backgroundColor: const Color(0xFF22C55E),
           colorText: Colors.white,
           duration: const Duration(seconds: 1),
         );
@@ -88,16 +88,17 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.book_outlined, size: 80, color: Colors.grey),
+                Icon(Icons.book_outlined,
+                    size: 80, color: const Color(0xFF64748B)),
                 SizedBox(height: 16),
                 Text(
                   'No courses enrolled yet',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                  style: TextStyle(fontSize: 18, color: Color(0xFF64748B)),
                 ),
                 SizedBox(height: 8),
                 Text(
                   'Enroll in courses from the home screen',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                  style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
                 ),
               ],
             ),
@@ -152,6 +153,7 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
                             children: [
                               GestureDetector(
                                 onTap: () {
+                                  if (_isEditing) return; // Prevent accidental navigation while trying to delete
                                   Get.to(
                                     () => EnrolledCourseScreen(course: course),
                                   );

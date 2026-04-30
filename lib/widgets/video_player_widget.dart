@@ -148,11 +148,11 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       child: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.video_library, size: 48, color: Colors.grey),
+          Icon(Icons.video_library, size: 48, color: const Color(0xFF64748B)),
           SizedBox(height: 16),
           Text(
             'No video available',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
+            style: TextStyle(fontSize: 16, color: const Color(0xFF64748B)),
           ),
         ],
       ),
@@ -216,7 +216,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                 const SizedBox(height: 8),
                 const Text(
                   'Watch this video tutorial in your browser',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                  style: TextStyle(fontSize: 12, color: const Color(0xFF64748B)),
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
@@ -248,7 +248,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                   'Video ID: $_videoId',
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Colors.grey,
+                    color: const Color(0xFF64748B),
                   ),
                 ),
               ],
@@ -318,7 +318,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
                         'Video ID: $_videoId',
                         style: const TextStyle(
                           fontSize: 12,
-                          color: Colors.grey,
+                          color: const Color(0xFF64748B),
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),

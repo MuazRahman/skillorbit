@@ -87,7 +87,7 @@ class AppBarWidget {
                       Get.snackbar(
                         'Logged Out',
                         'You have been logged out successfully',
-                        backgroundColor: Colors.green,
+                        backgroundColor: const Color(0xFF22C55E),
                         colorText: Colors.white,
                       );
                     } else {
