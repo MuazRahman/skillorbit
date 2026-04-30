@@ -9,7 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:skillorbit/controllers/theme_controller.dart';
 import 'package:skillorbit/widgets/app_bar_widget.dart';
 import 'package:skillorbit/widgets/video_player_widget.dart';
-import 'package:skillorbit/screens/dashboard_screen.dart';
+import 'package:skillorbit/screens/dashboard_screen.dart' as dashboard_view;
 
 class EnrolledCourseScreen extends StatefulWidget {
   final Course course;
@@ -79,7 +79,8 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
                           child: Image.network(
                             widget.course.imageUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(),
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(),
                           ),
                         )
                       : null,
@@ -113,15 +114,22 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
                                     widget.course.icon,
                                     width: 50,
                                     height: 50,
-                                    placeholderBuilder: (context) => const Icon(Icons.school, size: 50, color: Colors.white),
+                                    placeholderBuilder: (context) => const Icon(
+                                        Icons.school,
+                                        size: 50,
+                                        color: Colors.white),
                                   )
                                 : Image.asset(
                                     widget.course.icon,
                                     width: 50,
                                     height: 50,
-                                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.school, size: 50, color: Colors.white),
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(Icons.school,
+                                                size: 50, color: Colors.white),
                                   ))
-                            : const Icon(Icons.school, size: 50, color: Colors.white),
+                            : const Icon(Icons.school,
+                                size: 50, color: Colors.white),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -134,7 +142,9 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
                       ),
                       const SizedBox(height: 8),
                       Obx(() {
-                        final modules = courseController.courseModules[widget.course.id] ?? [];
+                        final modules =
+                            courseController.courseModules[widget.course.id] ??
+                                [];
                         return Text(
                           '${modules.length} Modules',
                           style: TextStyle(
@@ -165,14 +175,16 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
                         ),
                   ),
                   const SizedBox(height: 16),
-
                   if (isLoadingModules)
                     const Center(child: CircularProgressIndicator())
                   else
                     Obx(() {
-                      final modules = courseController.courseModules[widget.course.id] ?? [];
+                      final modules =
+                          courseController.courseModules[widget.course.id] ??
+                              [];
                       if (modules.isEmpty) {
-                        return const Center(child: Text('No modules available yet.'));
+                        return const Center(
+                            child: Text('No modules available yet.'));
                       }
                       return ListView.builder(
                         shrinkWrap: true,
@@ -198,7 +210,8 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
                               contentPadding: const EdgeInsets.all(16),
                               title: Text(
                                 module.name,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                               trailing: const Icon(Icons.arrow_forward_ios),
                               onTap: () {
@@ -296,23 +309,26 @@ class _ModuleTopicsScreenState extends State<ModuleTopicsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Obx(() {
-                    final topics = courseController.moduleTopics[widget.module.id] ?? [];
+                    final topics =
+                        courseController.moduleTopics[widget.module.id] ?? [];
                     return Text(
                       '${topics.length} Topics',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                     );
                   }),
                   const SizedBox(height: 16),
-
                   if (isLoadingTopics)
                     const Center(child: CircularProgressIndicator())
                   else
                     Obx(() {
-                      final topics = courseController.moduleTopics[widget.module.id] ?? [];
+                      final topics =
+                          courseController.moduleTopics[widget.module.id] ?? [];
                       if (topics.isEmpty) {
-                        return const Center(child: Text('No topics available yet.'));
+                        return const Center(
+                            child: Text('No topics available yet.'));
                       }
                       return ListView.builder(
                         shrinkWrap: true,
@@ -338,7 +354,8 @@ class _ModuleTopicsScreenState extends State<ModuleTopicsScreen> {
                               contentPadding: const EdgeInsets.all(16),
                               title: Text(
                                 topic.name,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                               trailing: const Icon(Icons.arrow_forward_ios),
                               onTap: () {
@@ -499,9 +516,10 @@ class _TopicDetailsScreenState extends State<TopicDetailsScreen> {
                   children: [
                     Text(
                       'Learning Resource',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                     ),
                     const SizedBox(height: 12),
                     GestureDetector(
@@ -514,7 +532,10 @@ class _TopicDetailsScreenState extends State<TopicDetailsScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -665,10 +686,11 @@ class _TopicQuizScreenState extends State<TopicQuizScreen> {
     if (quizzes.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text('Quiz')),
-        body: const Center(child: Text('No quiz questions available for this topic.')),
+        body: const Center(
+            child: Text('No quiz questions available for this topic.')),
       );
     }
-    
+
     if (showResults) {
       return Scaffold(
         appBar: AppBar(title: const Text('Quiz Results')),
@@ -676,18 +698,21 @@ class _TopicQuizScreenState extends State<TopicQuizScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Your Score: $score/${quizzes.length}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              Text('Your Score: $score/${quizzes.length}',
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () {
                   try {
                     final dashboardController = Get.find<DashBoardController>();
-                    dashboardController.currentPageIndex.value = 2; // Profile screen index
+                    dashboardController.currentPageIndex.value =
+                        2; // Profile screen index
                   } catch (e) {
                     print('DashBoardController not found: $e');
                   }
                   // Navigate to Dashboard (which will show the Profile tab)
-                  Get.offAll(() => const DashboardScreen());
+                  Get.offAll(() => const dashboard_view.DashboardScreen());
                 },
                 child: const Text('Finish and View Achievements'),
               ),
@@ -699,13 +724,17 @@ class _TopicQuizScreenState extends State<TopicQuizScreen> {
 
     final question = quizzes[currentQuestionIndex];
     return Scaffold(
-      appBar: AppBar(title: Text('Question ${currentQuestionIndex + 1}/${quizzes.length}')),
+      appBar: AppBar(
+          title:
+              Text('Question ${currentQuestionIndex + 1}/${quizzes.length}')),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(question.question, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(question.question,
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
             ...List.generate(question.options.length, (index) {
               return ListTile(
@@ -721,8 +750,12 @@ class _TopicQuizScreenState extends State<TopicQuizScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: selectedAnswers[currentQuestionIndex] == null ? null : goToNextQuestion,
-                child: Text(currentQuestionIndex == quizzes.length - 1 ? 'Finish' : 'Next'),
+                onPressed: selectedAnswers[currentQuestionIndex] == null
+                    ? null
+                    : goToNextQuestion,
+                child: Text(currentQuestionIndex == quizzes.length - 1
+                    ? 'Finish'
+                    : 'Next'),
               ),
             ),
           ],
