@@ -3,190 +3,134 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// Service class for interacting with Firestore database
 ///
 /// This service provides methods to fetch course data from Firestore,
-/// following the repository pattern to separate data access logic
-/// from business logic and UI concerns.
+/// following the repository pattern.
 ///
-/// The service handles the hierarchical structure of course data:
-/// courses → topics → subtopics → quizQuestions
+/// The service now uses a FLAT structure for better performance and admin control:
+/// courses (top-level)
+/// modules (top-level, linked by courseId)
+/// topics (top-level, linked by moduleId)
+/// quizzes (top-level, linked by parentId)
 class FirestoreCourseService {
-  /// Firestore instance for database operations
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Gets a stream of all courses
-  ///
-  /// Returns a stream that emits snapshots of all courses in the database,
-  /// ordered by course name. The stream automatically updates when
-  /// courses are added, modified, or removed.
+  // --- Courses ---
+
+  /// Gets all courses ordered by name
   Stream<QuerySnapshot> getAllCourses() {
-    print('Fetching all courses from Firestore');
+    print('Fetching all courses from Firestore (Flat)');
     return _firestore.collection('courses').orderBy('name').snapshots();
   }
 
   /// Gets a specific course by ID
-  ///
-  /// Fetches a single course document from Firestore by its document ID.
-  ///
-  /// [courseId] - The ID of the course to fetch
   Future<DocumentSnapshot> getCourse(String courseId) {
-    print('Fetching course with ID: $courseId');
     return _firestore.collection('courses').doc(courseId).get();
   }
 
-  /// Gets a stream of topics for a specific course
-  ///
-  /// Returns a stream that emits snapshots of all topics for the specified course,
-  /// ordered by topic order. The stream automatically updates when topics
-  /// are added, modified, or removed.
-  ///
-  /// [courseId] - The ID of the course to get topics for
-  Stream<QuerySnapshot> getCourseTopics(String courseId) {
-    print('Fetching topics for course ID: $courseId');
+  // --- Modules (Formerly Topics) ---
+
+  /// Gets all modules for a specific course
+  Stream<QuerySnapshot> getCourseModules(String courseId) {
+    print('Fetching modules for course ID: $courseId');
     return _firestore
-        .collection('courses')
-        .doc(courseId)
-        .collection('topics')
-        .orderBy('order')
+        .collection('modules')
+        .where('courseId', isEqualTo: courseId)
         .snapshots();
   }
 
-  /// Gets a specific topic by ID
-  ///
-  /// Fetches a single topic document from Firestore by its document ID
-  /// within the specified course.
-  ///
-  /// [courseId] - The ID of the course containing the topic
-  /// [topicId] - The ID of the topic to fetch
-  Future<DocumentSnapshot> getTopic(String courseId, String topicId) {
-    print('Fetching topic with ID: $topicId for course ID: $courseId');
-    return _firestore
-        .collection('courses')
-        .doc(courseId)
-        .collection('topics')
-        .doc(topicId)
-        .get();
-  }
+  // --- Topics (Formerly Subtopics) ---
 
-  /// Gets a stream of subtopics for a specific topic
-  ///
-  /// Returns a stream that emits snapshots of all subtopics for the specified topic,
-  /// ordered by subtopic order. The stream automatically updates when subtopics
-  /// are added, modified, or removed.
-  ///
-  /// [courseId] - The ID of the course containing the topic
-  /// [topicId] - The ID of the topic to get subtopics for
-  Stream<QuerySnapshot> getSubtopics(String courseId, String topicId) {
-    print('Fetching subtopics for course ID: $courseId, topic ID: $topicId');
+  /// Gets all topics for a specific module
+  Stream<QuerySnapshot> getModuleTopics(String moduleId) {
+    print('Fetching topics for module ID: $moduleId');
     return _firestore
-        .collection('courses')
-        .doc(courseId)
         .collection('topics')
-        .doc(topicId)
-        .collection('subtopics')
-        .orderBy('order')
+        .where('moduleId', isEqualTo: moduleId)
         .snapshots();
   }
 
-  /// Gets a specific subtopic by ID
-  ///
-  /// Fetches a single subtopic document from Firestore by its document ID
-  /// within the specified topic.
-  ///
-  /// [courseId] - The ID of the course containing the subtopic
-  /// [topicId] - The ID of the topic containing the subtopic
-  /// [subtopicId] - The ID of the subtopic to fetch
-  Future<DocumentSnapshot> getSubtopic(
-    String courseId,
-    String topicId,
-    String subtopicId,
-  ) {
-    print(
-      'Fetching subtopic with ID: $subtopicId for course ID: $courseId, topic ID: $topicId',
-    );
-    return _firestore
-        .collection('courses')
-        .doc(courseId)
-        .collection('topics')
-        .doc(topicId)
-        .collection('subtopics')
-        .doc(subtopicId)
-        .get();
-  }
+  // --- Quizzes ---
 
-  /// Gets a stream of quiz questions for a specific subtopic
-  ///
-  /// Returns a stream that emits snapshots of all quiz questions for the specified subtopic,
-  /// ordered by question order. The stream automatically updates when questions
-  /// are added, modified, or removed.
-  ///
-  /// [courseId] - The ID of the course containing the subtopic
-  /// [topicId] - The ID of the topic containing the subtopic
-  /// [subtopicId] - The ID of the subtopic to get quiz questions for
-  Stream<QuerySnapshot> getSubtopicQuizQuestions(
-    String courseId,
-    String topicId,
-    String subtopicId,
-  ) {
-    print(
-      'Fetching quiz questions for subtopic ID: $subtopicId, course ID: $courseId, topic ID: $topicId',
-    );
+  /// Gets quiz questions for a module or topic
+  Stream<QuerySnapshot> getQuizQuestions(String parentId) {
+    print('Fetching quiz questions for parent ID: $parentId');
     return _firestore
-        .collection('courses')
-        .doc(courseId)
-        .collection('topics')
-        .doc(topicId)
-        .collection('subtopics')
-        .doc(subtopicId)
-        .collection('quizQuestions')
-        .orderBy('order')
+        .collection('quizzes')
+        .where('parentId', isEqualTo: parentId)
         .snapshots();
   }
 
-  /// Gets a stream of quiz questions for a specific topic
-  ///
-  /// Returns a stream that emits snapshots of all quiz questions for the specified topic,
-  /// ordered by question order. The stream automatically updates when questions
-  /// are added, modified, or removed.
-  ///
-  /// [courseId] - The ID of the course containing the topic
-  /// [topicId] - The ID of the topic to get quiz questions for
-  Stream<QuerySnapshot> getTopicQuizQuestions(String courseId, String topicId) {
-    print(
-      'Fetching quiz questions for topic ID: $topicId, course ID: $courseId',
-    );
-    return _firestore
-        .collection('courses')
-        .doc(courseId)
-        .collection('topics')
-        .doc(topicId)
-        .collection('quizQuestions')
-        .orderBy('order')
-        .snapshots();
+  // --- CRUD Operations (Admin) ---
+
+  // Courses
+  Future<void> addCourse(Map<String, dynamic> data) {
+    final String name = data['name'] as String;
+    // Use the name as the document ID for easier management
+    return _firestore.collection('courses').doc(name).set(data);
   }
+
+  Future<void> updateCourse(String id, Map<String, dynamic> data) {
+    return _firestore.collection('courses').doc(id).update(data);
+  }
+
+  Future<void> deleteCourse(String id) {
+    return _firestore.collection('courses').doc(id).delete();
+  }
+
+  // Modules
+  Future<void> addModule(Map<String, dynamic> data) {
+    final String courseId = data['courseId'] as String;
+    final String name = data['name'] as String;
+    final String id = '${courseId}_$name';
+    return _firestore.collection('modules').doc(id).set(data);
+  }
+
+  Future<void> updateModule(String id, Map<String, dynamic> data) {
+    return _firestore.collection('modules').doc(id).update(data);
+  }
+
+  Future<void> deleteModule(String id) {
+    return _firestore.collection('modules').doc(id).delete();
+  }
+
+  // Topics
+  Future<void> addTopic(Map<String, dynamic> data) {
+    final String moduleId = data['moduleId'] as String;
+    final String name = data['name'] as String;
+    final String id = '${moduleId}_$name';
+    return _firestore.collection('topics').doc(id).set(data);
+  }
+
+  Future<void> updateTopic(String id, Map<String, dynamic> data) {
+    return _firestore.collection('topics').doc(id).update(data);
+  }
+
+  Future<void> deleteTopic(String id) {
+    return _firestore.collection('topics').doc(id).delete();
+  }
+
+  // Quizzes
+  Future<void> addQuizQuestion(Map<String, dynamic> data) {
+    return _firestore.collection('quizzes').add(data);
+  }
+
+  Future<void> updateQuizQuestion(String id, Map<String, dynamic> data) {
+    return _firestore.collection('quizzes').doc(id).update(data);
+  }
+
+  Future<void> deleteQuizQuestion(String id) {
+    return _firestore.collection('quizzes').doc(id).delete();
+  }
+
+  // --- Legacy Support & Simple Courses ---
 
   /// Gets simple topic names for courses without detailed structure
-  ///
-  /// Fetches the list of topic names for courses that don't have
-  /// detailed topic/subtopic structure. These courses store topic
-  /// names as a simple array in the course document.
-  ///
-  /// [courseId] - The ID of the course to get topic names for
   Future<List<String>> getSimpleCourseTopics(String courseId) async {
-    print('Fetching simple course topics for course ID: $courseId');
-    final courseDoc = await _firestore
-        .collection('courses')
-        .doc(courseId)
-        .get();
-    final data = courseDoc.data();
-    print('Course document data: $data');
+    final courseDoc = await getCourse(courseId);
+    final data = courseDoc.data() as Map<String, dynamic>?;
 
     if (data != null && data.containsKey('topicNames')) {
-      print(
-        'Found ${data['topicNames'].length} simple topics for course ID: $courseId',
-      );
       return List<String>.from(data['topicNames'] as List);
     }
-
-    print('No simple topics found for course ID: $courseId');
     return [];
   }
 }

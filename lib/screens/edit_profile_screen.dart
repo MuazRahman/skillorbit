@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -59,14 +60,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
 
       if (image != null) {
-        final imageFile = File(image.path);
-        // Update Rx variables instead of using setState
-        _selectedImage.value = imageFile;
+        // Use readAsBytes() directly from XFile - this works on both Mobile and Web!
+        final bytes = await image.readAsBytes();
+        
+        // Update Rx variables
+        // On web, we don't use the File class for UI previews
+        _selectedImage.value = kIsWeb ? null : File(image.path);
 
         // Convert to base64 for storage in Firestore
         try {
-          final bytes = await imageFile.readAsBytes();
-          final extension = image.path.split('.').last.toLowerCase();
+          final extension = image.name.split('.').last.toLowerCase();
           String mimeType = 'image/jpeg'; // default
           if (extension == 'png') {
             mimeType = 'image/png';
@@ -106,7 +109,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
       final result = await _authController.updateProfile(
         username,
-        currentPhotoUrl,
+        _base64Image.value.isNotEmpty ? _base64Image.value : currentPhotoUrl,
         imageFile: _selectedImage.value,
       );
 

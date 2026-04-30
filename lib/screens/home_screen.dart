@@ -15,31 +15,22 @@ class HomeScreen extends StatelessWidget {
 
   IconData _getIconForCourse(String courseName) {
     switch (courseName.toLowerCase()) {
-      case 'flutter':
-        return Icons.phone_android;
+      case 'flutter': return Icons.phone_android;
       case 'c':
-      case 'c++':
-        return Icons.code_sharp;
-      case 'java':
-        return Icons.coffee_outlined;
-      case 'database':
-        return Icons.storage_rounded;
-      case 'mysql':
-        return Icons.dns_outlined;
-      case 'html':
-        return Icons.web_asset;
-      default:
-        return Icons.school_outlined;
+      case 'c++': return Icons.code_sharp;
+      case 'java': return Icons.coffee_outlined;
+      case 'database': return Icons.storage_rounded;
+      case 'mysql': return Icons.dns_outlined;
+      case 'html': return Icons.web_asset;
+      default: return Icons.school_outlined;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Get required controllers using GetX dependency injection
     final AuthController authController = Get.find<AuthController>();
     final ThemeController themeController = Get.find<ThemeController>();
-    final HomeScreenController homeScreenController =
-        Get.find<HomeScreenController>();
+    final HomeScreenController homeScreenController = Get.find<HomeScreenController>();
     final CourseController courseController = Get.find<CourseController>();
 
     return TopRoundCornerScreen(
@@ -48,63 +39,38 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // === HEADER SECTION ===
-            // Display welcome message and user name
             Text(
               'Welcome back,',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
             ),
             Obx(
               () => Text(
-                authController.userName.value.isNotEmpty
-                    ? authController.userName.value
-                    : 'Guest User',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                authController.userName.value.isNotEmpty ? authController.userName.value : 'Guest User',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
             ),
-
-            // === MAIN CONTENT AREA ===
-            // Scrollable content area containing course information
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // === ENROLLED COURSES PROGRESS ===
-                    // Display progress cards for all enrolled courses
                     Obx(() {
-                      // Show message when no courses are enrolled
-                      if (courseController.enrolledCourses.isEmpty) {
+                      // Accessing the list itself to ensure Obx triggers on ANY change (add/remove)
+                      final enrolledCount = courseController.enrolledCourses.length;
+                      
+                      if (enrolledCount == 0) {
                         return _buildNoCoursesMessage(context);
                       } else {
-                        // Show progress cards for all enrolled courses
-                        return _buildEnrolledCoursesProgress(
-                          context,
-                          courseController,
-                          themeController,
-                          homeScreenController,
-                        );
+                        return _buildEnrolledCoursesProgress(context, courseController, themeController, homeScreenController);
                       }
                     }),
-
                     const SizedBox(height: 16),
-
-                    // === AVAILABLE COURSES SECTION ===
-                    // Header for the courses section
                     Text(
                       'Available Courses',
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                     ),
-
                     const SizedBox(height: 12),
-
-                    // Grid of available courses
                     _buildAvailableCoursesSection(context, courseController),
                   ],
                 ),
@@ -124,36 +90,16 @@ class HomeScreen extends StatelessWidget {
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
+          BoxShadow(color: Colors.grey.withOpacity(0.1), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, 2)),
         ],
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.school_outlined,
-            size: 48,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+          Icon(Icons.school_outlined, size: 48, color: Theme.of(context).colorScheme.primary),
           const SizedBox(height: 16),
-          Text(
-            'No enrolled courses yet',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-          ),
+          const Text('No enrolled courses yet', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           const SizedBox(height: 8),
-          Text(
-            'Enroll in courses to start your learning journey',
-            textAlign: TextAlign.center,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-          ),
+          const Text('Enroll in courses to start your learning journey', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
         ],
       ),
     );
@@ -167,265 +113,151 @@ class HomeScreen extends StatelessWidget {
   ) {
     return Column(
       children: courseController.enrolledCourses.map((course) {
-        // Calculate progress for this course using the same method as enhanced achievements screen
-        final totalSubtopics = courseController.getTotalSubtopicsForCourse(
-          course.name,
-        );
-        final completedSubtopics = courseController
-            .getCompletedSubtopicsForCourse(course.name);
-        final progress = totalSubtopics > 0
-            ? (completedSubtopics / totalSubtopics) * 100
-            : 0.0;
+        // Simplified progress for now (requires loading modules/topics for real calculation)
+        double progress = 0.0;
+        final achievements = courseController.achievements.where((a) => a.courseName == course.name).toList();
+        if (achievements.isNotEmpty) {
+           // This is just a placeholder logic; real progress requires total module/topic count
+           progress = 10.0; // Placeholder
+        }
 
         return buildProgressCard(
           themeController,
           homeScreenController,
           context,
           course.name,
-          'Recently enrolled', // You might want to store actual enrollment dates
-          progress: progress, // Pass real progress value
+          'Recently enrolled',
+          progress: progress,
         );
       }).toList(),
     );
   }
 
-  Widget _buildAvailableCoursesSection(
-    BuildContext context,
-    CourseController courseController,
-  ) {
+  Widget _buildAvailableCoursesSection(BuildContext context, CourseController courseController) {
     return Obx(() {
-      // Show loading indicator if courses are still being loaded
+      // Access enrolledCourses to ensure this Obx rebuilds when enrollment status changes
+      final _ = courseController.enrolledCourses.length;
+      
       if (courseController.isCoursesLoading.value) {
-        return _buildCoursesLoadingIndicator(context);
+        return const Center(child: CircularProgressIndicator());
       }
-
-      // Show courses grid when loading is complete
       return _buildAvailableCoursesGrid(context, courseController);
     });
   }
 
-  Widget _buildCoursesLoadingIndicator(BuildContext context) {
-    return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+  Widget _buildAvailableCoursesGrid(BuildContext context, CourseController courseController) {
+    return GridView.builder(
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      padding: const EdgeInsets.only(bottom: 16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 0.85,
       ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Enhanced loading animation
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              ),
-              child: Center(
-                child: SizedBox(
-                  width: 30,
-                  height: 30,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Theme.of(context).colorScheme.primary,
+      itemCount: courseController.availableCourses.length,
+      itemBuilder: (context, index) {
+        final course = courseController.availableCourses[index];
+        final isEnrolled = courseController.isCourseEnrolled(course.name);
+
+        return GestureDetector(
+          onTap: () {
+            Get.to(() => CourseDetailsScreen(
+              courseName: course.name,
+              courseDescription: course.description,
+              topics: course.topicNames,
+            ));
+          },
+          child: Card(
+            elevation: 2,
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                    ),
+                    child: course.imageUrl.isNotEmpty
+                        ? Image.network(
+                            course.imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Center(
+                              child: Icon(_getIconForCourse(course.name), size: 30, color: Theme.of(context).colorScheme.primary),
+                            ),
+                          )
+                        : Center(
+                            child: Icon(_getIconForCourse(course.name), size: 30, color: Theme.of(context).colorScheme.primary),
+                          ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          course.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          isEnrolled ? 'Enrolled' : 'View Details',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isEnrolled ? Colors.green : Colors.grey,
+                            fontWeight: isEnrolled ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-            const SizedBox(height: 20),
-            // Enhanced text with better styling
-            Text(
-              'Loading courses',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Preparing your learning journey...',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-              ),
-            ),
-            // Animated dots
-            const SizedBox(height: 16),
-            const _AnimatedDots(),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildAvailableCoursesGrid(
-    BuildContext context,
-    CourseController courseController,
-  ) {
-    return Obx(() {
-      return GridView.builder(
-        physics: const NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        padding: const EdgeInsets.only(bottom: 16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          childAspectRatio: 1,
-        ),
-        itemCount: courseController.availableCourses.length,
-        itemBuilder: (context, index) {
-          final course = courseController.availableCourses[index];
-          final isEnrolled = courseController.isCourseEnrolled(course.name);
-
-          List<String> topicsList = [];
-          if (course.hasDetailedTopics) {
-            // For detailed courses, extract topic names
-            topicsList = course.topics.map((t) => t.name).toList();
-          } else {
-            // For simple courses, use topicNames
-            topicsList = course.topicNames;
-          }
-
-          return GestureDetector(
-            onTap: () {
-              // Navigate to Course Details Screen for all courses
-              // Enrollment will happen in the course details screen
-              Get.to(
-                () => CourseDetailsScreen(
-                  courseName: course.name,
-                  courseDescription: course.description,
-                  topics: topicsList,
-                ),
-              );
-            },
-            child: Card(
-              elevation: 2,
-              color: Theme.of(context).cardColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: Theme.of(context).dividerColor,
-                  width: 0.3,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: course.icon.isNotEmpty
-                        ? (course.icon.contains('.svg')
-                              ? SvgPicture.asset(
-                                  course.icon,
-                                  fit: BoxFit.contain,
-                                  placeholderBuilder: (context) => Icon(
-                                    _getIconForCourse(course.name),
-                                    size: 40,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                                )
-                              : course.icon.contains('.png')
-                              ? Image.asset(
-                                  course.icon,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Icon(
-                                        _getIconForCourse(course.name),
-                                        size: 40,
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                      ),
-                                )
-                              : Icon(
-                                  _getIconForCourse(course.name),
-                                  size: 40,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ))
-                        : Icon(
-                            _getIconForCourse(course.name),
-                            size: 40,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    course.name,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    isEnrolled ? 'Enrolled' : 'View Details',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isEnrolled
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    });
-  }
-
-
-  // Updated Course Progress Card to accept progress parameter
   Widget buildProgressCard(
     ThemeController themeController,
     HomeScreenController homeScreenController,
     BuildContext context,
     String enrolledCourse,
     String enrollmentDate, {
-    double progress = 80.5, // Default progress value
+    double progress = 0.0,
   }) {
     return Obx(() {
       final isDarkMode = themeController.isDarkMode.value;
-
       return Card(
         elevation: 3,
-        color: isDarkMode
-            ? Theme.of(context).colorScheme.surfaceContainerHighest
-            : Theme.of(context).cardColor,
+        color: isDarkMode ? Colors.grey[850] : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
               SizedBox(
-                width: 80,
-                height: 80,
-                child: GradientCircularProgressIndicator(
-                  progress: progress, // Use passed progress value
-                  strokeWidth: 8,
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest,
-                  child: Center(
-                    child: Text(
-                      '${progress.toStringAsFixed(2)}%', // Display with 2 decimal places
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
+                width: 60,
+                height: 60,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CircularProgressIndicator(value: progress / 100, strokeWidth: 6),
+                    Text('${progress.toInt()}%', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  ],
                 ),
               ),
               const SizedBox(width: 16),
@@ -433,21 +265,9 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Enrolled in:',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    Text(
-                      enrolledCourse,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'on $enrollmentDate',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+                    Text('Enrolled in:', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    Text(enrolledCourse, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text('on $enrollmentDate', style: const TextStyle(fontSize: 11, color: Colors.grey)),
                   ],
                 ),
               ),
@@ -459,74 +279,8 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-// Animated dots widget for loading indicator
-class _AnimatedDots extends StatefulWidget {
+class _AnimatedDots extends StatelessWidget {
   const _AnimatedDots();
-
   @override
-  State<_AnimatedDots> createState() => _AnimatedDotsState();
-}
-
-class _AnimatedDotsState extends State<_AnimatedDots>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-    _animation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-    _controller.repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: _animation,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => const SizedBox();
 }

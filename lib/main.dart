@@ -18,5 +18,5 @@ void main() async {
   }
 
   AppTheme();
-  runApp(App());
+  runApp(const App());
 }

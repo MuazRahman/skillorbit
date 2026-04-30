@@ -28,8 +28,9 @@ class _AppState extends State<App> {
         theme: themeController.isDarkMode.value
             ? AppTheme.darkTheme
             : AppTheme.lightTheme,
-        home: const SplashScreen(),
+        initialRoute: '/',
         getPages: [
+          GetPage(name: '/', page: () => const SplashScreen()),
           GetPage(name: '/login', page: () => const LoginScreen()),
           GetPage(name: '/signup', page: () => const SignupScreen()),
           GetPage(name: '/dashboard', page: () => const DashboardScreen()),

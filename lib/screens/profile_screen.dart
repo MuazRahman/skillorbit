@@ -21,8 +21,10 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Load user data lazily when the profile screen is accessed
-    _loadUserData();
+    // Load user data lazily after the build phase to avoid assertion errors
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserData();
+    });
 
     return TopRoundCornerScreen(
       child: RefreshIndicator(
@@ -510,6 +512,10 @@ class ProfileScreen extends StatelessWidget {
                   ],
                 ),
               ),
+
+              const SizedBox(height: 16),
+
+              const SizedBox(height: 16),
 
               const SizedBox(height: 32),
             ],

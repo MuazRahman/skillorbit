@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:skillorbit/controllers/theme_controller.dart';
 import 'package:skillorbit/widgets/app_bar_widget.dart';
 import 'package:skillorbit/widgets/video_player_widget.dart';
+import 'package:skillorbit/screens/dashboard_screen.dart';
 
 class EnrolledCourseScreen extends StatefulWidget {
   final Course course;
@@ -20,8 +21,26 @@ class EnrolledCourseScreen extends StatefulWidget {
 }
 
 class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
-  final themeController = Get.put(ThemeController());
+  final themeController = Get.find<ThemeController>();
   final courseController = Get.find<CourseController>();
+  bool isLoadingModules = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadModules();
+    });
+  }
+
+  Future<void> _loadModules() async {
+    await courseController.getModulesForCourse(widget.course.id);
+    if (mounted) {
+      setState(() {
+        isLoadingModules = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,187 +51,167 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header with course info
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24.0),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Theme.of(context).colorScheme.primary,
-                    Theme.of(context).colorScheme.secondary,
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 220,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context).colorScheme.primary,
+                        Theme.of(context).colorScheme.secondary,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(30),
+                      bottomRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: widget.course.imageUrl.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(30),
+                            bottomRight: Radius.circular(30),
+                          ),
+                          child: Image.network(
+                            widget.course.imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(),
+                          ),
+                        )
+                      : null,
                 ),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                if (widget.course.imageUrl.isNotEmpty)
                   Container(
-                    padding: const EdgeInsets.all(16.0),
+                    height: 220,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
+                      color: Colors.black.withOpacity(0.3),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(30),
+                        bottomRight: Radius.circular(30),
+                      ),
                     ),
-                    child: widget.course.icon.isNotEmpty
-                        ? (widget.course.icon.contains('.svg')
-                            ? SvgPicture.asset(
-                                widget.course.icon,
-                                width: 80,
-                                height: 80,
-                                placeholderBuilder: (context) => Icon(
-                                  Icons.school,
-                                  size: 80,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : widget.course.icon.contains('.png')
-                                ? Image.asset(
+                  ),
+                Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      Container(
+                        padding: const EdgeInsets.all(12.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: widget.course.icon.isNotEmpty
+                            ? (widget.course.icon.contains('.svg')
+                                ? SvgPicture.asset(
                                     widget.course.icon,
-                                    width: 80,
-                                    height: 80,
-                                    errorBuilder:
-                                        (context, error, stackTrace) => Icon(
-                                      Icons.school,
-                                      size: 80,
-                                      color: Colors.white,
-                                    ),
+                                    width: 50,
+                                    height: 50,
+                                    placeholderBuilder: (context) => const Icon(Icons.school, size: 50, color: Colors.white),
                                   )
-                                : Icon(
-                                    Icons.school,
-                                    size: 80,
-                                    color: Colors.white,
+                                : Image.asset(
+                                    widget.course.icon,
+                                    width: 50,
+                                    height: 50,
+                                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.school, size: 50, color: Colors.white),
                                   ))
-                        : Icon(Icons.school, size: 80, color: Colors.white),
+                            : const Icon(Icons.school, size: 50, color: Colors.white),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        widget.course.name,
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Obx(() {
+                        final modules = courseController.courseModules[widget.course.id] ?? [];
+                        return Text(
+                          '${modules.length} Modules',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.white.withOpacity(0.9),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        );
+                      }),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.course.name,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${widget.course.topics.length} Topics',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white.withOpacity(0.9),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
 
             const SizedBox(height: 24),
 
-            // Topics Section
+            // Modules Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Course Topics',
+                    'Course Modules',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Topics List
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: widget.course.topics.length,
-                    itemBuilder: (context, index) {
-                      final topic = widget.course.topics[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
-                              spreadRadius: 1,
-                              blurRadius: 3,
-                              offset: const Offset(0, 1),
+                  if (isLoadingModules)
+                    const Center(child: CircularProgressIndicator())
+                  else
+                    Obx(() {
+                      final modules = courseController.courseModules[widget.course.id] ?? [];
+                      if (modules.isEmpty) {
+                        return const Center(child: Text('No modules available yet.'));
+                      }
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: modules.length,
+                        itemBuilder: (context, index) {
+                          final module = modules[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 3,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(16),
-                          title: Text(
-                            topic.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          // Show "Coming Soon" badge if topic has no content
-                          trailing: (topic.subtopics.isEmpty &&
-                                  topic.quizQuestions.isEmpty)
-                              ? Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Text(
-                                    'Coming Soon',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                )
-                              : const Icon(Icons.arrow_forward_ios),
-                          onTap: () {
-                            // Check if topic has content (subtopics or quiz questions)
-                            if (topic.subtopics.isEmpty &&
-                                topic.quizQuestions.isEmpty) {
-                              // Show message that content is coming soon
-                              Get.snackbar(
-                                'Coming Soon',
-                                'This topic content is being prepared and will be available soon!',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.grey[700],
-                                colorText: Colors.white,
-                              );
-                              return;
-                            }
-
-                            // Check if topic has subtopics
-                            if (topic.subtopics.isNotEmpty) {
-                              // Navigate to subtopics screen
-                              Get.to(
-                                () => SubtopicsScreen(
-                                  topic: topic,
-                                  courseName: widget.course.name,
-                                ),
-                              );
-                            } else {
-                              // Navigate to topic details screen directly
-                              Get.to(
-                                () => TopicDetailsScreen(
-                                  topic: topic,
-                                  courseName: widget.course.name,
-                                ),
-                              );
-                            }
-                          },
-                        ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(16),
+                              title: Text(
+                                module.name,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              trailing: const Icon(Icons.arrow_forward_ios),
+                              onTap: () {
+                                Get.to(() => ModuleTopicsScreen(
+                                      module: module,
+                                      courseName: widget.course.name,
+                                    ));
+                              },
+                            ),
+                          );
+                        },
                       );
-                    },
-                  ),
+                    }),
                 ],
               ),
             ),
@@ -225,26 +224,47 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
   }
 }
 
-// Subtopics Screen
-class SubtopicsScreen extends StatelessWidget {
-  final Topic topic;
+// Module Topics Screen (formerly Subtopics Screen)
+class ModuleTopicsScreen extends StatefulWidget {
+  final Module module;
   final String courseName;
 
-  const SubtopicsScreen({
+  const ModuleTopicsScreen({
     super.key,
-    required this.topic,
+    required this.module,
     required this.courseName,
   });
+
+  @override
+  State<ModuleTopicsScreen> createState() => _ModuleTopicsScreenState();
+}
+
+class _ModuleTopicsScreenState extends State<ModuleTopicsScreen> {
+  final courseController = Get.find<CourseController>();
+  bool isLoadingTopics = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTopics();
+    });
+  }
+
+  Future<void> _loadTopics() async {
+    await courseController.getTopicsForModule(widget.module.id);
+    if (mounted) {
+      setState(() {
+        isLoadingTopics = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(topic.name),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        title: Text(widget.module.name),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -258,7 +278,7 @@ class SubtopicsScreen extends StatelessWidget {
                 color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
               ),
               child: Text(
-                courseName,
+                widget.courseName,
                 style: TextStyle(
                   fontSize: 16,
                   color: Theme.of(context).colorScheme.primary,
@@ -269,95 +289,70 @@ class SubtopicsScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Subtopics Section
+            // Topics Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '${topic.subtopics.length} Subtopics',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
+                  Obx(() {
+                    final topics = courseController.moduleTopics[widget.module.id] ?? [];
+                    return Text(
+                      '${topics.length} Topics',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    );
+                  }),
                   const SizedBox(height: 16),
 
-                  // Subtopics List
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: topic.subtopics.length,
-                    itemBuilder: (context, index) {
-                      final subtopic = topic.subtopics[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.grey.withOpacity(0.1),
-                              spreadRadius: 1,
-                              blurRadius: 3,
-                              offset: const Offset(0, 1),
+                  if (isLoadingTopics)
+                    const Center(child: CircularProgressIndicator())
+                  else
+                    Obx(() {
+                      final topics = courseController.moduleTopics[widget.module.id] ?? [];
+                      if (topics.isEmpty) {
+                        return const Center(child: Text('No topics available yet.'));
+                      }
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: topics.length,
+                        itemBuilder: (context, index) {
+                          final topic = topics[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.grey.withOpacity(0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 3,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(16),
-                          title: Text(
-                            subtopic.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          // Show "Coming Soon" badge if subtopic has no content
-                          trailing: (subtopic.quizQuestions.isEmpty)
-                              ? Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Text(
-                                    'Coming Soon',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                )
-                              : const Icon(Icons.arrow_forward_ios),
-                          onTap: () {
-                            // Check if subtopic has content (quiz questions)
-                            if (subtopic.quizQuestions.isEmpty) {
-                              // Show message that content is coming soon
-                              Get.snackbar(
-                                'Coming Soon',
-                                'This subtopic content is being prepared and will be available soon!',
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.grey[700],
-                                colorText: Colors.white,
-                              );
-                              return;
-                            }
-
-                            // Navigate to subtopic details screen
-                            Get.to(
-                              () => SubtopicDetailsScreen(
-                                subtopic: subtopic,
-                                topicName: topic.name,
-                                courseName: courseName,
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(16),
+                              title: Text(
+                                topic.name,
+                                style: const TextStyle(fontWeight: FontWeight.bold),
                               ),
-                            );
-                          },
-                        ),
+                              trailing: const Icon(Icons.arrow_forward_ios),
+                              onTap: () {
+                                Get.to(() => TopicDetailsScreen(
+                                      topic: topic,
+                                      moduleName: widget.module.name,
+                                      courseName: widget.courseName,
+                                    ));
+                              },
+                            ),
+                          );
+                        },
                       );
-                    },
-                  ),
+                    }),
                 ],
               ),
             ),
@@ -370,43 +365,29 @@ class SubtopicsScreen extends StatelessWidget {
   }
 }
 
-// Subtopic Details Screen
-class SubtopicDetailsScreen extends StatefulWidget {
-  final Subtopic subtopic;
-  final String topicName;
+// Topic Details Screen (formerly Subtopic Details Screen)
+class TopicDetailsScreen extends StatefulWidget {
+  final Topic topic;
+  final String moduleName;
   final String courseName;
 
-  const SubtopicDetailsScreen({
+  const TopicDetailsScreen({
     super.key,
-    required this.subtopic,
-    required this.topicName,
+    required this.topic,
+    required this.moduleName,
     required this.courseName,
   });
 
   @override
-  State<SubtopicDetailsScreen> createState() => _SubtopicDetailsScreenState();
+  State<TopicDetailsScreen> createState() => _TopicDetailsScreenState();
 }
 
-class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
-  @override
-  void initState() {
-    super.initState();
-    print(
-        'SubtopicDetailsScreen initState called for: ${widget.subtopic.name}');
-  }
-
+class _TopicDetailsScreenState extends State<TopicDetailsScreen> {
   @override
   Widget build(BuildContext context) {
-    print('Building SubtopicDetailsScreen for: ${widget.subtopic.name}');
-    print('Video URL: ${widget.subtopic.videoUrl}');
-    print('Video URL is empty: ${widget.subtopic.videoUrl.isEmpty}');
-    print(
-        'Video URL contains youtube: ${widget.subtopic.videoUrl.contains('youtube')}');
-    print('Video URL length: ${widget.subtopic.videoUrl.length}');
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.subtopic.name),
+        title: Text(widget.topic.name),
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
       ),
@@ -414,7 +395,7 @@ class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with subtopic info
+            // Header with topic info
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24.0),
@@ -432,7 +413,7 @@ class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.topicName,
+                    widget.moduleName,
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.white.withOpacity(0.9),
@@ -440,7 +421,7 @@ class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    widget.subtopic.name,
+                    widget.topic.name,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -475,6 +456,7 @@ class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
                   ),
                   const SizedBox(height: 12),
                   Container(
+                    width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Theme.of(context).cardColor,
@@ -489,7 +471,7 @@ class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
                       ],
                     ),
                     child: Text(
-                      widget.subtopic.description,
+                      widget.topic.description,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
@@ -499,53 +481,40 @@ class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
 
             const SizedBox(height: 24),
 
-            // Video Player Section
-            if (widget.subtopic.videoUrl.isNotEmpty) ...[
+            // Video Player Section (YouTube)
+            if (widget.topic.videoUrl.isNotEmpty) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: VideoPlayerWidget(videoUrl: widget.subtopic.videoUrl),
+                child: VideoPlayerWidget(videoUrl: widget.topic.videoUrl),
               ),
               const SizedBox(height: 24),
             ],
 
-            // Tutorial Link Section
-            if (widget.subtopic.tutorialLink.isNotEmpty) ...[
+            // Tutorial Link Section (Topic Doc)
+            if (widget.topic.tutorialLink.isNotEmpty) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Tutorial Link',
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                      'Learning Resource',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 12),
                     GestureDetector(
                       onTap: () async {
-                        final uri = Uri.parse(widget.subtopic.tutorialLink);
+                        final uri = Uri.parse(widget.topic.tutorialLink);
                         if (await canLaunchUrl(uri)) {
                           await launchUrl(uri);
-                        } else {
-                          if (mounted) {
-                            Get.snackbar(
-                              'Error',
-                              'Could not open the link',
-                              backgroundColor: Colors.red,
-                              colorText: Colors.white,
-                            );
-                          }
                         }
                       },
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withOpacity(0.1),
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -554,7 +523,7 @@ class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                widget.subtopic.tutorialLink,
+                                widget.topic.tutorialLink,
                                 style: TextStyle(
                                   color: Theme.of(context).colorScheme.primary,
                                   decoration: TextDecoration.underline,
@@ -580,32 +549,23 @@ class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
                 height: 60,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Navigate to quiz screen
-                    Get.to(
-                      () => SubtopicQuizScreen(
-                        subtopic: widget.subtopic,
-                        topicName: widget.topicName,
-                        courseName: widget.courseName,
-                      ),
-                    );
+                    Get.to(() => TopicQuizScreen(
+                          parentId: widget.topic.id,
+                          parentName: widget.topic.name,
+                          courseName: widget.courseName,
+                        ));
                   },
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    textStyle: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    elevation: 1,
                   ),
                   child: const Text('Take Quiz'),
                 ),
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
           ],
         ),
       ),
@@ -613,35 +573,49 @@ class _SubtopicDetailsScreenState extends State<SubtopicDetailsScreen> {
   }
 }
 
-// Subtopic Quiz Screen
-class SubtopicQuizScreen extends StatefulWidget {
-  final Subtopic subtopic;
-  final String topicName;
+// Topic Quiz Screen (formerly Subtopic Quiz Screen)
+class TopicQuizScreen extends StatefulWidget {
+  final String parentId;
+  final String parentName;
   final String courseName;
 
-  const SubtopicQuizScreen({
+  const TopicQuizScreen({
     super.key,
-    required this.subtopic,
-    required this.topicName,
+    required this.parentId,
+    required this.parentName,
     required this.courseName,
   });
 
   @override
-  State<SubtopicQuizScreen> createState() => _SubtopicQuizScreenState();
+  State<TopicQuizScreen> createState() => _TopicQuizScreenState();
 }
 
-class _SubtopicQuizScreenState extends State<SubtopicQuizScreen> {
+class _TopicQuizScreenState extends State<TopicQuizScreen> {
+  final courseController = Get.find<CourseController>();
   int currentQuestionIndex = 0;
   List<int?> selectedAnswers = [];
   bool showResults = false;
   bool isQuizSubmitted = false;
   int score = 0;
-  final courseController = Get.find<CourseController>();
+  bool isLoadingQuizzes = true;
+  List<QuizQuestion> quizzes = [];
 
   @override
   void initState() {
     super.initState();
-    selectedAnswers = List.filled(widget.subtopic.quizQuestions.length, null);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadQuizzes();
+    });
+  }
+
+  Future<void> _loadQuizzes() async {
+    quizzes = await courseController.getQuizzes(widget.parentId);
+    if (mounted) {
+      setState(() {
+        selectedAnswers = List.filled(quizzes.length, null);
+        isLoadingQuizzes = false;
+      });
+    }
   }
 
   void selectAnswer(int optionIndex) {
@@ -651,148 +625,71 @@ class _SubtopicQuizScreenState extends State<SubtopicQuizScreen> {
   }
 
   void goToNextQuestion() {
-    if (currentQuestionIndex < widget.subtopic.quizQuestions.length - 1) {
+    if (currentQuestionIndex < quizzes.length - 1) {
       setState(() {
         currentQuestionIndex++;
       });
     } else {
-      // Calculate score and submit quiz when reaching the last question
       calculateScore();
       submitQuiz();
     }
   }
 
-  void goToPreviousQuestion() {
-    if (currentQuestionIndex > 0) {
-      setState(() {
-        currentQuestionIndex--;
-      });
-    }
-  }
-
   void calculateScore() {
     score = 0;
-    for (int i = 0; i < widget.subtopic.quizQuestions.length; i++) {
-      if (selectedAnswers[i] ==
-          widget.subtopic.quizQuestions[i].correctAnswerIndex) {
+    for (int i = 0; i < quizzes.length; i++) {
+      if (selectedAnswers[i] == quizzes[i].correctAnswerIndex) {
         score++;
       }
     }
   }
 
   void submitQuiz() {
-    try {
-      // Add achievement
-      final achievement = Achievement(
-        topicName: '${widget.topicName} - ${widget.subtopic.name}',
-        courseName: widget.courseName,
-        dateCompleted: DateTime.now(),
-      );
-      courseController.addAchievement(achievement);
-
-      // Show completion message
-      Get.snackbar(
-        'Quiz Completed!',
-        'You scored $score/${widget.subtopic.quizQuestions.length}. Subtopic completed successfully!',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-
-      // Update state to show "See Achievement" button
-      setState(() {
-        showResults = true;
-        isQuizSubmitted = true;
-      });
-    } catch (e) {
-      // Show error message
-      Get.snackbar(
-        'Error',
-        'Failed to complete subtopic. Please try again.',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      print('Error completing subtopic: $e');
-    }
+    final achievement = Achievement(
+      topicName: widget.parentName,
+      courseName: widget.courseName,
+      dateCompleted: DateTime.now(),
+    );
+    courseController.addAchievement(achievement);
+    setState(() {
+      showResults = true;
+      isQuizSubmitted = true;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoadingQuizzes) {
+      return Scaffold(body: const Center(child: CircularProgressIndicator()));
+    }
+    if (quizzes.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Quiz')),
+        body: const Center(child: Text('No quiz questions available for this topic.')),
+      );
+    }
+    
     if (showResults) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Quiz Results'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
-        body: SingleChildScrollView(
+        appBar: AppBar(title: const Text('Quiz Results')),
+        body: Center(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Text('Your Score: $score/${quizzes.length}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 24),
-              Center(
-                child: Text(
-                  'Your Score: $score/${widget.subtopic.quizQuestions.length}',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: LinearProgressIndicator(
-                  value: score / widget.subtopic.quizQuestions.length,
-                  minHeight: 10,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Text(
-                  score >= widget.subtopic.quizQuestions.length * 0.7
-                      ? 'Congratulations! You passed the quiz.'
-                      : 'Keep studying and try again!',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 18),
-                ),
-              ),
-              const SizedBox(height: 32),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 60,
-                  child: ElevatedButton(
-                    onPressed: isQuizSubmitted
-                        ? () {
-                            // Navigate to profile screen to see achievements
-                            final dashboardController =
-                                Get.find<DashBoardController>();
-                            dashboardController.currentPageIndex.value =
-                                2; // Profile screen index
-                            Get.offAllNamed('/dashboard');
-                          }
-                        : submitQuiz,
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: Text(isQuizSubmitted
-                        ? 'See Achievement'
-                        : 'Complete Subtopic'),
-                  ),
-                ),
+              ElevatedButton(
+                onPressed: () {
+                  try {
+                    final dashboardController = Get.find<DashBoardController>();
+                    dashboardController.currentPageIndex.value = 2; // Profile screen index
+                  } catch (e) {
+                    print('DashBoardController not found: $e');
+                  }
+                  // Navigate to Dashboard (which will show the Profile tab)
+                  Get.offAll(() => const DashboardScreen());
+                },
+                child: const Text('Finish and View Achievements'),
               ),
             ],
           ),
@@ -800,631 +697,34 @@ class _SubtopicQuizScreenState extends State<SubtopicQuizScreen> {
       );
     }
 
-    final question = widget.subtopic.quizQuestions[currentQuestionIndex];
-
+    final question = quizzes[currentQuestionIndex];
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Question ${currentQuestionIndex + 1}/${widget.subtopic.quizQuestions.length}',
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: SingleChildScrollView(
+      appBar: AppBar(title: Text('Question ${currentQuestionIndex + 1}/${quizzes.length}')),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Progress bar
-            LinearProgressIndicator(
-              value: (currentQuestionIndex + 1) /
-                  widget.subtopic.quizQuestions.length,
-              minHeight: 5,
-            ),
-
+            Text(question.question, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
-
-            // Question
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Text(
-                question.question,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+            ...List.generate(question.options.length, (index) {
+              return ListTile(
+                title: Text(question.options[index]),
+                leading: Radio<int>(
+                  value: index,
+                  groupValue: selectedAnswers[currentQuestionIndex],
+                  onChanged: (val) => selectAnswer(index),
                 ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Options
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                children: List.generate(question.options.length, (index) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: selectedAnswers[currentQuestionIndex] == index
-                          ? Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.2)
-                          : Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: selectedAnswers[currentQuestionIndex] == index
-                            ? Theme.of(context).colorScheme.primary
-                            : Colors.transparent,
-                        width: 2,
-                      ),
-                    ),
-                    child: RadioListTile<int>(
-                      title: Text(question.options[index]),
-                      value: index,
-                      groupValue: selectedAnswers[currentQuestionIndex],
-                      onChanged: (value) {
-                        selectAnswer(value!);
-                      },
-                      activeColor: Theme.of(context).colorScheme.primary,
-                    ),
-                  );
-                }),
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // Navigation buttons
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Row(
-                children: [
-                  if (currentQuestionIndex > 0)
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: goToPreviousQuestion,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: const Text('Previous'),
-                      ),
-                    ),
-                  if (currentQuestionIndex > 0) const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: selectedAnswers[currentQuestionIndex] != null
-                          ? goToNextQuestion
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: Text(
-                        currentQuestionIndex ==
-                                widget.subtopic.quizQuestions.length - 1
-                            ? 'Submit Quiz'
-                            : 'Next',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Modified Topic Details Screen to handle topics without subtopics
-class TopicDetailsScreen extends StatelessWidget {
-  final Topic topic;
-  final String courseName;
-
-  const TopicDetailsScreen({
-    super.key,
-    required this.topic,
-    required this.courseName,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(topic.name),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Container(
+              );
+            }),
+            const Spacer(),
+            SizedBox(
               width: double.infinity,
-              padding: const EdgeInsets.all(24.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              ),
-              child: Text(
-                courseName,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
+              child: ElevatedButton(
+                onPressed: selectedAnswers[currentQuestionIndex] == null ? null : goToNextQuestion,
+                child: Text(currentQuestionIndex == quizzes.length - 1 ? 'Finish' : 'Next'),
               ),
             ),
-
-            const SizedBox(height: 24),
-
-            // Description Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Description',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      topic.description,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Tutorial Link
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Tutorial',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Learn more about this topic:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        InkWell(
-                          onTap: () {
-                            // Open tutorial link
-                            // In a real app, you would use url_launcher package
-                            launchUrl(
-                              Uri.parse(topic.tutorialLink),
-                              mode: LaunchMode.externalApplication,
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.link),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    topic.tutorialLink,
-                                    style: TextStyle(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Quiz Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Navigate to quiz screen
-                    Get.to(
-                      () => QuizScreen(topic: topic, courseName: courseName),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    textStyle: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    elevation: 1,
-                  ),
-                  child: const Text('Take Quiz'),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Quiz Screen
-class QuizScreen extends StatefulWidget {
-  final Topic topic;
-  final String courseName;
-
-  const QuizScreen({super.key, required this.topic, required this.courseName});
-
-  @override
-  State<QuizScreen> createState() => _QuizScreenState();
-}
-
-class _QuizScreenState extends State<QuizScreen> {
-  int currentQuestionIndex = 0;
-  List<int?> selectedAnswers = [];
-  bool showResults = false;
-  bool isQuizSubmitted = false;
-  int score = 0;
-  final courseController = Get.find<CourseController>();
-
-  @override
-  void initState() {
-    super.initState();
-    selectedAnswers = List.filled(widget.topic.quizQuestions.length, null);
-  }
-
-  void selectAnswer(int optionIndex) {
-    setState(() {
-      selectedAnswers[currentQuestionIndex] = optionIndex;
-    });
-  }
-
-  void goToNextQuestion() {
-    if (currentQuestionIndex < widget.topic.quizQuestions.length - 1) {
-      setState(() {
-        currentQuestionIndex++;
-      });
-    } else {
-      // Calculate score and submit quiz when reaching the last question
-      calculateScore();
-      submitQuiz();
-    }
-  }
-
-  void goToPreviousQuestion() {
-    if (currentQuestionIndex > 0) {
-      setState(() {
-        currentQuestionIndex--;
-      });
-    }
-  }
-
-  void calculateScore() {
-    score = 0;
-    for (int i = 0; i < widget.topic.quizQuestions.length; i++) {
-      if (selectedAnswers[i] ==
-          widget.topic.quizQuestions[i].correctAnswerIndex) {
-        score++;
-      }
-    }
-  }
-
-  void submitQuiz() {
-    try {
-      // Add achievement
-      final achievement = Achievement(
-        topicName: widget.topic.name,
-        courseName: widget.courseName,
-        dateCompleted: DateTime.now(),
-      );
-      courseController.addAchievement(achievement);
-
-      // Show completion message
-      Get.snackbar(
-        'Quiz Completed!',
-        'You scored $score/${widget.topic.quizQuestions.length}. Topic completed successfully!',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-
-      // Update state to show "See Achievement" button
-      setState(() {
-        showResults = true;
-        isQuizSubmitted = true;
-      });
-    } catch (e) {
-      // Show error message
-      Get.snackbar(
-        'Error',
-        'Failed to complete topic. Please try again.',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      print('Error completing topic: $e');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (showResults) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Quiz Results'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 24),
-              Center(
-                child: Text(
-                  'Your Score: $score/${widget.topic.quizQuestions.length}',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: LinearProgressIndicator(
-                  value: score / widget.topic.quizQuestions.length,
-                  minHeight: 10,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Text(
-                  score >= widget.topic.quizQuestions.length * 0.7
-                      ? 'Congratulations! You passed the quiz.'
-                      : 'Keep studying and try again!',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 18),
-                ),
-              ),
-              const SizedBox(height: 32),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 60,
-                  child: ElevatedButton(
-                    onPressed: isQuizSubmitted
-                        ? () {
-                            // Navigate to profile screen to see achievements
-                            final dashboardController =
-                                Get.find<DashBoardController>();
-                            dashboardController.currentPageIndex.value =
-                                2; // Profile screen index
-                            Get.offAllNamed('/dashboard');
-                          }
-                        : submitQuiz,
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: Text(
-                        isQuizSubmitted ? 'See Achievement' : 'Complete Topic'),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final question = widget.topic.quizQuestions[currentQuestionIndex];
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Question ${currentQuestionIndex + 1}/${widget.topic.quizQuestions.length}',
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Progress bar
-            LinearProgressIndicator(
-              value: (currentQuestionIndex + 1) /
-                  widget.topic.quizQuestions.length,
-              minHeight: 5,
-            ),
-
-            const SizedBox(height: 24),
-
-            // Question
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Text(
-                question.question,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Options
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                children: List.generate(question.options.length, (index) {
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: selectedAnswers[currentQuestionIndex] == index
-                          ? Theme.of(
-                              context,
-                            ).colorScheme.primary.withOpacity(0.2)
-                          : Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: selectedAnswers[currentQuestionIndex] == index
-                            ? Theme.of(context).colorScheme.primary
-                            : Colors.transparent,
-                        width: 2,
-                      ),
-                    ),
-                    child: RadioListTile<int>(
-                      title: Text(question.options[index]),
-                      value: index,
-                      groupValue: selectedAnswers[currentQuestionIndex],
-                      onChanged: (value) {
-                        selectAnswer(value!);
-                      },
-                      activeColor: Theme.of(context).colorScheme.primary,
-                    ),
-                  );
-                }),
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // Navigation buttons
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Row(
-                children: [
-                  if (currentQuestionIndex > 0)
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: goToPreviousQuestion,
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: const Text('Previous'),
-                      ),
-                    ),
-                  if (currentQuestionIndex > 0) const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: selectedAnswers[currentQuestionIndex] != null
-                          ? goToNextQuestion
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: Text(
-                        currentQuestionIndex ==
-                                widget.topic.quizQuestions.length - 1
-                            ? 'Submit Quiz'
-                            : 'Next',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
           ],
         ),
       ),
