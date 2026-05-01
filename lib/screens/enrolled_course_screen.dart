@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/controllers/dashboard_controller.dart';
 import 'package:skillorbit/models/course_model.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:skillorbit/widgets/course_icon_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:skillorbit/controllers/theme_controller.dart';
@@ -47,10 +47,17 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBarWidget.buildAppBar(themeController, context),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Clear module cache for this course and re-fetch
+          await courseController.getModulesForCourse(widget.course.id, forceRefresh: true);
+          await courseController.refreshAllData();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Header with course info
             Stack(
               children: [
@@ -109,28 +116,13 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: widget.course.icon.isNotEmpty
-                            ? (widget.course.icon.contains('.svg')
-                                ? SvgPicture.asset(
-                                    widget.course.icon,
-                                    width: 50,
-                                    height: 50,
-                                    placeholderBuilder: (context) => const Icon(
-                                        Icons.school,
-                                        size: 50,
-                                        color: Colors.white),
-                                  )
-                                : Image.asset(
-                                    widget.course.icon,
-                                    width: 50,
-                                    height: 50,
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            const Icon(Icons.school,
-                                                size: 50, color: Colors.white),
-                                  ))
-                            : const Icon(Icons.school,
-                                size: 50, color: Colors.white),
+                        child: CourseIconWidget(
+                          iconPath: widget.course.icon,
+                          size: 50,
+                          iconSize: 50,
+                          backgroundColor: Colors.transparent,
+                          defaultIconColor: Colors.white,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -234,6 +226,7 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 }
@@ -281,10 +274,16 @@ class _ModuleTopicsScreenState extends State<ModuleTopicsScreen> {
       appBar: AppBar(
         title: Text(widget.module.name),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Clear topic cache for this module and re-fetch
+          await courseController.getTopicsForModule(widget.module.id, forceRefresh: true);
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Header
             Container(
               width: double.infinity,
@@ -379,6 +378,7 @@ class _ModuleTopicsScreenState extends State<ModuleTopicsScreen> {
             const SizedBox(height: 32),
           ],
         ),
+      ),
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/controllers/auth_controller.dart';
@@ -9,6 +8,7 @@ import 'package:skillorbit/models/course_model.dart';
 import 'package:skillorbit/screens/edit_profile_screen.dart';
 import 'package:skillorbit/screens/enhanced_achievements_screen.dart';
 import 'package:skillorbit/screens/enrolled_course_screen.dart';
+import 'package:skillorbit/widgets/course_icon_widget.dart';
 import 'package:skillorbit/widgets/top_round_corner_widget.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -560,38 +560,12 @@ class ProfileScreen extends StatelessWidget {
           children: [
             // Display course icon
             Expanded(
-              child: course.icon.isNotEmpty
-                  ? (course.icon.contains('.svg')
-                      ? SvgPicture.asset(
-                          course.icon,
-                          fit: BoxFit.contain,
-                          placeholderBuilder: (context) => Icon(
-                            Icons.school,
-                            size: 32,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                        )
-                      : course.icon.contains('.png')
-                          ? Image.asset(
-                              course.icon,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Icon(
-                                Icons.school,
-                                size: 32,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            )
-                          : Icon(
-                              Icons.school,
-                              size: 32,
-                              color: Theme.of(context).colorScheme.primary,
-                            ))
-                  : Icon(
-                      Icons.school,
-                      size: 32,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+              child: CourseIconWidget(
+                iconPath: course.icon,
+                size: double.infinity,
+                iconSize: 32,
+                backgroundColor: Colors.transparent,
+              ),
             ),
             const SizedBox(height: 8),
             Text(

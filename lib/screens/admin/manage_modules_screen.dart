@@ -133,6 +133,7 @@ class ManageModulesScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Module Name')),
+            const SizedBox(height: 20,),
             TextField(controller: orderController, decoration: const InputDecoration(labelText: 'Display Order'), keyboardType: TextInputType.number),
           ],
         ),

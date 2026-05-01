@@ -142,7 +142,7 @@ class CourseController extends GetxController {
   }
 
   /// Lazy load modules for a specific course.
-  /// Set [forceRefresh] to true to bypass cache and re-fetch from Firestore.
+  /// Set [forceRefresh] to true to bypass cache and re-fetch from Firestore server.
   Future<List<Module>> getModulesForCourse(String courseId, {bool forceRefresh = false}) async {
     if (!forceRefresh && courseModules.containsKey(courseId)) {
       return courseModules[courseId]!;
@@ -150,19 +150,29 @@ class CourseController extends GetxController {
 
     try {
       print('Loading modules for course: $courseId (forceRefresh: $forceRefresh)');
-      final snapshot = await _firestoreService.getCourseModules(courseId).first;
+      // Use direct server fetch to bypass Firestore local cache
+      final snapshot = await _firestoreService.getCourseModulesDirect(courseId);
       final modules =
           snapshot.docs.map((doc) => Module.fromFirestore(doc)).toList();
       courseModules[courseId] = modules;
       return modules;
     } catch (e) {
       print('Error loading modules: $e');
-      return [];
+      // Fallback: try from cache if server is unreachable
+      try {
+        final snapshot = await _firestoreService.getCourseModules(courseId).first;
+        final modules =
+            snapshot.docs.map((doc) => Module.fromFirestore(doc)).toList();
+        courseModules[courseId] = modules;
+        return modules;
+      } catch (_) {
+        return courseModules[courseId] ?? [];
+      }
     }
   }
 
   /// Lazy load topics for a specific module.
-  /// Set [forceRefresh] to true to bypass cache and re-fetch from Firestore.
+  /// Set [forceRefresh] to true to bypass cache and re-fetch from Firestore server.
   Future<List<Topic>> getTopicsForModule(String moduleId, {bool forceRefresh = false}) async {
     if (!forceRefresh && moduleTopics.containsKey(moduleId)) {
       return moduleTopics[moduleId]!;
@@ -170,19 +180,29 @@ class CourseController extends GetxController {
 
     try {
       print('Loading topics for module: $moduleId (forceRefresh: $forceRefresh)');
-      final snapshot = await _firestoreService.getModuleTopics(moduleId).first;
+      // Use direct server fetch to bypass Firestore local cache
+      final snapshot = await _firestoreService.getModuleTopicsDirect(moduleId);
       final topics =
           snapshot.docs.map((doc) => Topic.fromFirestore(doc)).toList();
       moduleTopics[moduleId] = topics;
       return topics;
     } catch (e) {
       print('Error loading topics: $e');
-      return [];
+      // Fallback: try from cache if server is unreachable
+      try {
+        final snapshot = await _firestoreService.getModuleTopics(moduleId).first;
+        final topics =
+            snapshot.docs.map((doc) => Topic.fromFirestore(doc)).toList();
+        moduleTopics[moduleId] = topics;
+        return topics;
+      } catch (_) {
+        return moduleTopics[moduleId] ?? [];
+      }
     }
   }
 
   /// Lazy load quiz questions for a module or topic.
-  /// Set [forceRefresh] to true to bypass cache and re-fetch from Firestore.
+  /// Set [forceRefresh] to true to bypass cache and re-fetch from Firestore server.
   Future<List<QuizQuestion>> getQuizzes(String parentId, {bool forceRefresh = false}) async {
     if (!forceRefresh && parentQuizzes.containsKey(parentId)) {
       return parentQuizzes[parentId]!;
@@ -190,14 +210,24 @@ class CourseController extends GetxController {
 
     try {
       print('Loading quizzes for parent: $parentId (forceRefresh: $forceRefresh)');
-      final snapshot = await _firestoreService.getQuizQuestions(parentId).first;
+      // Use direct server fetch to bypass Firestore local cache
+      final snapshot = await _firestoreService.getQuizQuestionsDirect(parentId);
       final quizzes =
           snapshot.docs.map((doc) => QuizQuestion.fromFirestore(doc)).toList();
       parentQuizzes[parentId] = quizzes;
       return quizzes;
     } catch (e) {
       print('Error loading quizzes: $e');
-      return [];
+      // Fallback: try from cache if server is unreachable
+      try {
+        final snapshot = await _firestoreService.getQuizQuestions(parentId).first;
+        final quizzes =
+            snapshot.docs.map((doc) => QuizQuestion.fromFirestore(doc)).toList();
+        parentQuizzes[parentId] = quizzes;
+        return quizzes;
+      } catch (_) {
+        return parentQuizzes[parentId] ?? [];
+      }
     }
   }
 

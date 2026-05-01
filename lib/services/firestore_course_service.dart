@@ -28,7 +28,7 @@ class FirestoreCourseService {
 
   // --- Modules (Formerly Topics) ---
 
-  /// Gets all modules for a specific course
+  /// Gets all modules for a specific course (real-time stream)
   Stream<QuerySnapshot> getCourseModules(String courseId) {
     print('Fetching modules for course ID: $courseId');
     return _firestore
@@ -37,9 +37,18 @@ class FirestoreCourseService {
         .snapshots();
   }
 
+  /// Gets all modules for a specific course (one-shot, always from server)
+  Future<QuerySnapshot> getCourseModulesDirect(String courseId) {
+    print('Direct-fetching modules for course ID: $courseId');
+    return _firestore
+        .collection('modules')
+        .where('courseId', isEqualTo: courseId)
+        .get(const GetOptions(source: Source.server));
+  }
+
   // --- Topics (Formerly Subtopics) ---
 
-  /// Gets all topics for a specific module
+  /// Gets all topics for a specific module (real-time stream)
   Stream<QuerySnapshot> getModuleTopics(String moduleId) {
     print('Fetching topics for module ID: $moduleId');
     return _firestore
@@ -48,15 +57,33 @@ class FirestoreCourseService {
         .snapshots();
   }
 
+  /// Gets all topics for a specific module (one-shot, always from server)
+  Future<QuerySnapshot> getModuleTopicsDirect(String moduleId) {
+    print('Direct-fetching topics for module ID: $moduleId');
+    return _firestore
+        .collection('topics')
+        .where('moduleId', isEqualTo: moduleId)
+        .get(const GetOptions(source: Source.server));
+  }
+
   // --- Quizzes ---
 
-  /// Gets quiz questions for a module or topic
+  /// Gets quiz questions for a module or topic (real-time stream)
   Stream<QuerySnapshot> getQuizQuestions(String parentId) {
     print('Fetching quiz questions for parent ID: $parentId');
     return _firestore
         .collection('quizzes')
         .where('parentId', isEqualTo: parentId)
         .snapshots();
+  }
+
+  /// Gets quiz questions (one-shot, always from server)
+  Future<QuerySnapshot> getQuizQuestionsDirect(String parentId) {
+    print('Direct-fetching quiz questions for parent ID: $parentId');
+    return _firestore
+        .collection('quizzes')
+        .where('parentId', isEqualTo: parentId)
+        .get(const GetOptions(source: Source.server));
   }
 
   // --- CRUD Operations (Admin) ---

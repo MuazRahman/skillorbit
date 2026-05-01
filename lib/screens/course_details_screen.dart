@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/controllers/auth_controller.dart';
 import 'package:skillorbit/controllers/dashboard_controller.dart';
@@ -8,8 +7,9 @@ import 'package:skillorbit/core/app_color.dart';
 import 'package:skillorbit/models/course_model.dart';
 import 'package:skillorbit/screens/auth/login_screen.dart';
 import 'package:skillorbit/screens/dashboard_screen.dart';
+import 'package:skillorbit/widgets/course_icon_widget.dart';
 
-class CourseDetailsScreen extends StatelessWidget {
+class CourseDetailsScreen extends StatefulWidget {
   final String courseName;
   final String courseDescription;
   final List<String> topics;
@@ -22,16 +22,37 @@ class CourseDetailsScreen extends StatelessWidget {
   });
 
   @override
+  State<CourseDetailsScreen> createState() => _CourseDetailsScreenState();
+}
+
+class _CourseDetailsScreenState extends State<CourseDetailsScreen> {
+  final courseController = Get.find<CourseController>();
+  final authController = Get.find<AuthController>();
+
+  // Key to force FutureBuilder rebuild on refresh
+  Key _futureKey = UniqueKey();
+
+  Future<void> _onRefresh() async {
+    await courseController.refreshAllData();
+    if (mounted) {
+      setState(() {
+        _futureKey = UniqueKey();
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final courseController = Get.find<CourseController>();
-    final authController = Get.find<AuthController>();
-    final course = courseController.getCourseByName(courseName);
+    final course = courseController.getCourseByName(widget.courseName);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('$courseName Course'),
+        title: Text('${widget.courseName} Course'),
       ),
-      body: SingleChildScrollView(
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -91,20 +112,16 @@ class CourseDetailsScreen extends StatelessWidget {
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: SizedBox(
-                          width: 60,
-                          height: 60,
-                          child: (course != null && course.icon.isNotEmpty)
-                              ? (course.icon.contains('.svg')
-                                  ? SvgPicture.asset(course.icon,
-                                      color: Colors.white)
-                                  : Image.asset(course.icon))
-                              : const Icon(Icons.school,
-                                  size: 40, color: Colors.white),
+                        child: CourseIconWidget(
+                          iconPath: (course != null) ? course.icon : '',
+                          size: 60,
+                          iconSize: 40,
+                          backgroundColor: Colors.transparent,
+                          defaultIconColor: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Text(courseName,
+                      Text(widget.courseName,
                           style: const TextStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
@@ -128,7 +145,7 @@ class CourseDetailsScreen extends StatelessWidget {
                       style:
                           TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 12),
-                  Text(courseDescription, style: const TextStyle(fontSize: 16)),
+                  Text(widget.courseDescription, style: const TextStyle(fontSize: 16)),
                   const SizedBox(height: 24),
                   const Text('What you\'ll learn',
                       style:
@@ -136,7 +153,8 @@ class CourseDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   if (course != null)
                     FutureBuilder<List<Module>>(
-                      future: courseController.getModulesForCourse(course.id),
+                      key: _futureKey,
+                      future: courseController.getModulesForCourse(course.id, forceRefresh: true),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Center(child: Padding(
@@ -204,7 +222,7 @@ class CourseDetailsScreen extends StatelessWidget {
                           );
                         }
                         
-                        if (topics.isNotEmpty) {
+                        if (widget.topics.isNotEmpty) {
                           return GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -214,7 +232,7 @@ class CourseDetailsScreen extends StatelessWidget {
                               mainAxisSpacing: 16,
                               childAspectRatio: 2.5,
                             ),
-                            itemCount: topics.length,
+                            itemCount: widget.topics.length,
                             itemBuilder: (context, index) {
                               return Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -226,7 +244,7 @@ class CourseDetailsScreen extends StatelessWidget {
                                 ),
                                 child: Center(
                                     child: Text(
-                                  topics[index],
+                                  widget.topics[index],
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16), // Made legacy topics bigger too
                                 )),
@@ -238,7 +256,7 @@ class CourseDetailsScreen extends StatelessWidget {
                         return const Text('Module list coming soon.', style: TextStyle(fontSize: 16));
                       },
                     )
-                  else if (topics.isEmpty)
+                  else if (widget.topics.isEmpty)
                     const Text('Module list coming soon.', style: TextStyle(fontSize: 16))
                   else
                     GridView.builder(
@@ -250,7 +268,7 @@ class CourseDetailsScreen extends StatelessWidget {
                         mainAxisSpacing: 16,
                         childAspectRatio: 2.5,
                       ),
-                      itemCount: topics.length,
+                      itemCount: widget.topics.length,
                       itemBuilder: (context, index) {
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -261,7 +279,7 @@ class CourseDetailsScreen extends StatelessWidget {
                                 color: const Color(0xFF64748B).withOpacity(0.2)),
                           ),
                           child: Center(
-                              child: Text(topics[index],
+                              child: Text(widget.topics[index],
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16))), // Made fallback topics bigger
                         );
@@ -270,7 +288,7 @@ class CourseDetailsScreen extends StatelessWidget {
                   const SizedBox(height: 32),
                   Obx(() {
                     final isEnrolled =
-                        courseController.isCourseEnrolled(courseName);
+                        courseController.isCourseEnrolled(widget.courseName);
 
                     return SizedBox(
                       width: double.infinity,
@@ -302,7 +320,7 @@ class CourseDetailsScreen extends StatelessWidget {
                               dashboardController.currentPageIndex.value = 1;
 
                               Get.snackbar(
-                                  'Success', 'Enrolled in $courseName');
+                                  'Success', 'Enrolled in ${widget.courseName}');
 
                               // Use direct navigation to be more robust against routing issues
                               Get.offAllNamed('/dashboard');
@@ -341,6 +359,7 @@ class CourseDetailsScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }

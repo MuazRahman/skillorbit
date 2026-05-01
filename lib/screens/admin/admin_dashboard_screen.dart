@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../controllers/admin_controller.dart';
-import '../../controllers/course_controller.dart';
 import '../../services/firestore_course_service.dart';
+import '../../widgets/course_icon_widget.dart';
 import 'manage_modules_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
@@ -28,7 +28,6 @@ class AdminDashboardScreen extends StatelessWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          // StreamBuilder auto-updates, but force a fresh snapshot
           await courseService.getAllCourses().first;
         },
         child: StreamBuilder<QuerySnapshot>(
@@ -73,14 +72,11 @@ class AdminDashboardScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(Icons.school, color: Theme.of(context).colorScheme.primary, size: 30),
+                          // Course icon preview
+                          CourseIconWidget(
+                            iconPath: data['icon'] ?? '',
+                            size: 60,
+                            iconSize: 30,
                           ),
                           const SizedBox(width: 16),
                           Expanded(
@@ -133,10 +129,13 @@ class AdminDashboardScreen extends StatelessWidget {
     final iconController = TextEditingController(text: currentData?['icon']);
     final imgController = TextEditingController(text: currentData?['imageUrl']);
 
+    // ValueNotifier to show a live preview of the icon URL
+    final iconPreview = ValueNotifier<String>(currentData?['icon'] ?? '');
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -156,23 +155,68 @@ class AdminDashboardScreen extends StatelessWidget {
               const SizedBox(height: 24),
               TextField(
                 controller: nameController,
-                decoration: const InputDecoration(labelText: 'Course Name', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Course Name',
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: descController,
                 maxLines: 3,
-                decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 16),
-              TextField(
-                controller: iconController,
-                decoration: const InputDecoration(labelText: 'Icon Path (e.g. assets/flutter.svg)', border: OutlineInputBorder()),
+
+              // Icon URL field with live preview
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Live preview
+                  ValueListenableBuilder<String>(
+                    valueListenable: iconPreview,
+                    builder: (context, url, _) {
+                      return CourseIconWidget(
+                        iconPath: url,
+                        size: 56,
+                        iconSize: 28,
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  // Text field
+                  Expanded(
+                    child: TextField(
+                      controller: iconController,
+                      decoration: const InputDecoration(
+                        labelText: 'Course Icon URL (optional)',
+                        hintText: 'Paste an image URL or leave empty',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        iconPreview.value = value;
+                      },
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 8),
+              Text(
+                'Leave empty to use the default icon',
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+              ),
+
               const SizedBox(height: 16),
               TextField(
                 controller: imgController,
-                decoration: const InputDecoration(labelText: 'Banner Image URL', border: OutlineInputBorder()),
+                decoration: const InputDecoration(
+                  labelText: 'Banner Image URL (optional)',
+                  hintText: 'Paste a banner image URL',
+                  border: OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 24),
               SizedBox(
@@ -184,15 +228,15 @@ class AdminDashboardScreen extends StatelessWidget {
                       adminController.createCourse(
                         name: nameController.text,
                         description: descController.text,
-                        icon: iconController.text,
-                        imageUrl: imgController.text,
+                        icon: iconController.text.trim(),
+                        imageUrl: imgController.text.trim(),
                       );
                     } else {
                       adminController.updateCourse(id, {
                         'name': nameController.text,
                         'description': descController.text,
-                        'icon': iconController.text,
-                        'imageUrl': imgController.text,
+                        'icon': iconController.text.trim(),
+                        'imageUrl': imgController.text.trim(),
                       });
                     }
                     Navigator.pop(context);

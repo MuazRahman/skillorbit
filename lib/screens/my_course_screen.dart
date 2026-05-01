@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:skillorbit/controllers/course_controller.dart';
 import 'package:skillorbit/screens/enrolled_course_screen.dart';
+import 'package:skillorbit/widgets/course_icon_widget.dart';
 import 'package:skillorbit/widgets/top_round_corner_widget.dart';
 
 class MyCourseScreen extends StatefulWidget {
@@ -172,57 +172,14 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
-                                        // Display course icon as an image
+                                        // Display course icon
                                         Expanded(
-                                          child: course.icon.isNotEmpty
-                                              ? (course.icon.contains('.svg')
-                                                  ? SvgPicture.asset(
-                                                      course.icon,
-                                                      fit: BoxFit.contain,
-                                                      placeholderBuilder:
-                                                          (context) => Icon(
-                                                        Icons.school,
-                                                        size: 40,
-                                                        color: Theme.of(
-                                                          context,
-                                                        ).colorScheme.primary,
-                                                      ),
-                                                    )
-                                                  : course.icon.contains(
-                                                      '.png',
-                                                    )
-                                                      ? Image.asset(
-                                                          course.icon,
-                                                          fit: BoxFit.contain,
-                                                          errorBuilder: (
-                                                            context,
-                                                            error,
-                                                            stackTrace,
-                                                          ) =>
-                                                              Icon(
-                                                            Icons.school,
-                                                            size: 40,
-                                                            color: Theme.of(
-                                                              context,
-                                                            )
-                                                                .colorScheme
-                                                                .primary,
-                                                          ),
-                                                        )
-                                                      : Icon(
-                                                          Icons.school,
-                                                          size: 40,
-                                                          color: Theme.of(
-                                                            context,
-                                                          ).colorScheme.primary,
-                                                        ))
-                                              : Icon(
-                                                  Icons.school,
-                                                  size: 40,
-                                                  color: Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary,
-                                                ),
+                                          child: CourseIconWidget(
+                                            iconPath: course.icon,
+                                            size: double.infinity,
+                                            iconSize: 40,
+                                            backgroundColor: Colors.transparent,
+                                          ),
                                         ),
                                         const SizedBox(height: 12),
                                         Text(
