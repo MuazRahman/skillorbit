@@ -29,8 +29,8 @@ class ProfileScreen extends StatelessWidget {
     return TopRoundCornerScreen(
       child: RefreshIndicator(
         onRefresh: () async {
-          // Refresh user data
-          await courseController.loadUserData();
+          // Refresh all data including caches
+          await courseController.refreshAllData();
         },
         child: SingleChildScrollView(
           child: Column(

@@ -50,29 +50,36 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Obx(() {
-                      // Accessing the list itself to ensure Obx triggers on ANY change (add/remove)
-                      final enrolledCount = courseController.enrolledCourses.length;
-                      
-                      if (enrolledCount == 0) {
-                        return _buildNoCoursesMessage(context);
-                      } else {
-                        return _buildEnrolledCoursesProgress(context, courseController, themeController, homeScreenController);
-                      }
-                    }),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Available Courses',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildAvailableCoursesSection(context, courseController),
-                  ],
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await courseController.refreshAllData();
+                },
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Obx(() {
+                        // Accessing the list itself to ensure Obx triggers on ANY change (add/remove)
+                        final enrolledCount = courseController.enrolledCourses.length;
+                        
+                        if (enrolledCount == 0) {
+                          return _buildNoCoursesMessage(context);
+                        } else {
+                          return _buildEnrolledCoursesProgress(context, courseController, themeController, homeScreenController);
+                        }
+                      }),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Available Courses',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildAvailableCoursesSection(context, courseController),
+                    ],
+                  ),
                 ),
               ),
             ),

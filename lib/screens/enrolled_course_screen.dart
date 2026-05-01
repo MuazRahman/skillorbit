@@ -34,7 +34,8 @@ class _EnrolledCourseScreenState extends State<EnrolledCourseScreen> {
   }
 
   Future<void> _loadModules() async {
-    await courseController.getModulesForCourse(widget.course.id);
+    // Always fetch fresh from Firestore to pick up admin changes
+    await courseController.getModulesForCourse(widget.course.id, forceRefresh: true);
     if (mounted) {
       setState(() {
         isLoadingModules = false;
@@ -265,7 +266,8 @@ class _ModuleTopicsScreenState extends State<ModuleTopicsScreen> {
   }
 
   Future<void> _loadTopics() async {
-    await courseController.getTopicsForModule(widget.module.id);
+    // Always fetch fresh from Firestore to pick up admin changes
+    await courseController.getTopicsForModule(widget.module.id, forceRefresh: true);
     if (mounted) {
       setState(() {
         isLoadingTopics = false;
@@ -630,7 +632,8 @@ class _TopicQuizScreenState extends State<TopicQuizScreen> {
   }
 
   Future<void> _loadQuizzes() async {
-    quizzes = await courseController.getQuizzes(widget.parentId);
+    // Always fetch fresh from Firestore to pick up admin changes
+    quizzes = await courseController.getQuizzes(widget.parentId, forceRefresh: true);
     if (mounted) {
       setState(() {
         selectedAnswers = List.filled(quizzes.length, null);

@@ -47,10 +47,10 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
   Future<void> _refreshEnrolledCourses() async {
     try {
       final courseController = Get.find<CourseController>();
-      print('MyCourseScreen: Refreshing user data');
-      // Reload user's enrolled courses and achievements
-      await courseController.loadUserData();
-      print('MyCourseScreen: Refreshed user enrolled courses and achievements');
+      print('MyCourseScreen: Refreshing all data');
+      // Clear all caches and reload from Firestore
+      await courseController.refreshAllData();
+      print('MyCourseScreen: Refreshed all data successfully');
 
       // Force a rebuild of the widget to update the UI
       setState(() {});
@@ -65,7 +65,7 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
         );
       }
     } catch (e) {
-      print('MyCourseScreen: Error refreshing enrolled courses: $e');
+      print('MyCourseScreen: Error refreshing courses: $e');
       if (mounted) {
         Get.snackbar(
           'Error',

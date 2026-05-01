@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/firestore_course_service.dart';
@@ -5,8 +6,11 @@ import '../services/firestore_user_service.dart';
 import '../models/course_model.dart';
 import '../core/asset_path.dart';
 
-/// Controller responsible for managing course data and user progress
-/// Updated to use a flat Firestore structure and lazy loading.
+/// Controller responsible for managing course data and user progress.
+///
+/// Uses real-time Firestore listeners for courses so that admin changes
+/// are automatically reflected in the user UI without needing to restart
+/// or clear app data.
 class CourseController extends GetxController {
   // Observables
   var enrolledCourses = <Course>[].obs;
@@ -24,20 +28,69 @@ class CourseController extends GetxController {
   final FirestoreUserService _userService = FirestoreUserService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  /// Subscription to the real-time courses stream from Firestore.
+  StreamSubscription? _coursesSubscription;
+
   @override
   void onInit() {
     super.onInit();
-    print('CourseController initialized (Flat)');
+    print('CourseController initialized (Flat + Real-time)');
+    _startListeningToCourses();
     _checkAndLoadUserData();
+  }
+
+  @override
+  void onClose() {
+    _coursesSubscription?.cancel();
+    super.onClose();
+  }
+
+  /// Start listening to the courses collection in real-time.
+  /// Any time a course is added, updated, or deleted in Firestore
+  /// (e.g. from the admin panel), this will automatically update
+  /// the availableCourses list and the UI.
+  void _startListeningToCourses() {
+    isCoursesLoading.value = true;
+    _coursesSubscription?.cancel();
+    _coursesSubscription = _firestoreService.getAllCourses().listen(
+      (snapshot) {
+        final courses = snapshot.docs.map((doc) {
+          return Course.fromFirestore(doc);
+        }).toList();
+
+        availableCourses.assignAll(courses);
+        print('Real-time update: ${availableCourses.length} courses');
+        isCoursesLoading.value = false;
+
+        // Also refresh enrolled courses to pick up any name/description changes
+        _refreshEnrolledFromAvailable();
+      },
+      onError: (e) {
+        print('Error in courses stream: $e');
+        isCoursesLoading.value = false;
+      },
+    );
+  }
+
+  /// Re-maps enrolled courses from the latest availableCourses data
+  /// so that if a course name/description/icon was updated by admin,
+  /// the enrolled list also reflects those changes.
+  void _refreshEnrolledFromAvailable() {
+    if (enrolledCourses.isEmpty) return;
+
+    final enrolledNames = enrolledCourses.map((c) => c.name).toList();
+    final updatedEnrolled = <Course>[];
+    for (var name in enrolledNames) {
+      final course = availableCourses.firstWhereOrNull((c) => c.name == name);
+      if (course != null) updatedEnrolled.add(course);
+    }
+    enrolledCourses.assignAll(updatedEnrolled);
   }
 
   Future<void> _checkAndLoadUserData() async {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        if (availableCourses.isEmpty) {
-          await loadCoursesFromFirestore();
-        }
         await loadUserData();
       }
     } catch (e) {
@@ -50,7 +103,25 @@ class CourseController extends GetxController {
     achievements.clear();
   }
 
-  /// Loads ONLY the courses metadata (Flat)
+  /// Clears all cached data and reloads everything from Firestore.
+  /// Call this on pull-to-refresh to pick up admin changes
+  /// for modules, topics, and quizzes (courses are already real-time).
+  Future<void> refreshAllData() async {
+    // Clear all in-memory caches for sub-level data
+    courseModules.clear();
+    moduleTopics.clear();
+    parentQuizzes.clear();
+
+    // Courses are already real-time via stream listener,
+    // but force a fresh snapshot just in case
+    await _firestoreService.getAllCourses().first;
+
+    // Reload user-specific data
+    await loadUserData();
+  }
+
+  /// Loads ONLY the courses metadata (one-shot, for manual refresh).
+  /// Normally not needed since the real-time listener handles this.
   Future<void> loadCoursesFromFirestore() async {
     try {
       isCoursesLoading.value = true;
@@ -70,14 +141,15 @@ class CourseController extends GetxController {
     }
   }
 
-  /// Lazy load modules for a specific course
-  Future<List<Module>> getModulesForCourse(String courseId) async {
-    if (courseModules.containsKey(courseId)) {
+  /// Lazy load modules for a specific course.
+  /// Set [forceRefresh] to true to bypass cache and re-fetch from Firestore.
+  Future<List<Module>> getModulesForCourse(String courseId, {bool forceRefresh = false}) async {
+    if (!forceRefresh && courseModules.containsKey(courseId)) {
       return courseModules[courseId]!;
     }
 
     try {
-      print('Lazy loading modules for course: $courseId');
+      print('Loading modules for course: $courseId (forceRefresh: $forceRefresh)');
       final snapshot = await _firestoreService.getCourseModules(courseId).first;
       final modules =
           snapshot.docs.map((doc) => Module.fromFirestore(doc)).toList();
@@ -89,14 +161,15 @@ class CourseController extends GetxController {
     }
   }
 
-  /// Lazy load topics for a specific module
-  Future<List<Topic>> getTopicsForModule(String moduleId) async {
-    if (moduleTopics.containsKey(moduleId)) {
+  /// Lazy load topics for a specific module.
+  /// Set [forceRefresh] to true to bypass cache and re-fetch from Firestore.
+  Future<List<Topic>> getTopicsForModule(String moduleId, {bool forceRefresh = false}) async {
+    if (!forceRefresh && moduleTopics.containsKey(moduleId)) {
       return moduleTopics[moduleId]!;
     }
 
     try {
-      print('Lazy loading topics for module: $moduleId');
+      print('Loading topics for module: $moduleId (forceRefresh: $forceRefresh)');
       final snapshot = await _firestoreService.getModuleTopics(moduleId).first;
       final topics =
           snapshot.docs.map((doc) => Topic.fromFirestore(doc)).toList();
@@ -108,14 +181,15 @@ class CourseController extends GetxController {
     }
   }
 
-  /// Lazy load quiz questions for a module or topic
-  Future<List<QuizQuestion>> getQuizzes(String parentId) async {
-    if (parentQuizzes.containsKey(parentId)) {
+  /// Lazy load quiz questions for a module or topic.
+  /// Set [forceRefresh] to true to bypass cache and re-fetch from Firestore.
+  Future<List<QuizQuestion>> getQuizzes(String parentId, {bool forceRefresh = false}) async {
+    if (!forceRefresh && parentQuizzes.containsKey(parentId)) {
       return parentQuizzes[parentId]!;
     }
 
     try {
-      print('Lazy loading quizzes for parent: $parentId');
+      print('Loading quizzes for parent: $parentId (forceRefresh: $forceRefresh)');
       final snapshot = await _firestoreService.getQuizQuestions(parentId).first;
       final quizzes =
           snapshot.docs.map((doc) => QuizQuestion.fromFirestore(doc)).toList();
