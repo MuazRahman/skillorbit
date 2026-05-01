@@ -49,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         // Navigate to dashboard
         if (mounted) {
-          Get.offAll(() => const DashboardScreen());
+          Get.offAllNamed('/dashboard');
         }
       } else {
         // Error occurred

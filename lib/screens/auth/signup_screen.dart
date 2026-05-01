@@ -118,7 +118,7 @@ class _SignupScreenState extends State<SignupScreen> {
         );
         // Navigate to dashboard (user is auto-logged in by Firebase)
         if (mounted) {
-          Get.offAll(() => const DashboardScreen());
+          Get.offAllNamed('/dashboard');
         }
       } else {
         // Error occurred

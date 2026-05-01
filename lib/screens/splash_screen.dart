@@ -67,15 +67,16 @@ class _SplashScreenState extends State<SplashScreen>
       await Future.delayed(const Duration(seconds: 2));
 
       // Navigate to dashboard immediately - data will load in background
+      // Navigate to dashboard immediately - data will load in background
       print('Navigating to dashboard...');
       if (mounted) {
-        Get.offAll(() => const DashboardScreen());
+        Get.offAllNamed('/dashboard');
       }
     } catch (e) {
       print('Error during splash screen: $e');
       // On error, still navigate to dashboard
       if (mounted) {
-        Get.offAll(() => const DashboardScreen());
+        Get.offAllNamed('/dashboard');
       }
     }
   }

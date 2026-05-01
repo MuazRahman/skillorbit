@@ -712,7 +712,7 @@ class _TopicQuizScreenState extends State<TopicQuizScreen> {
                     print('DashBoardController not found: $e');
                   }
                   // Navigate to Dashboard (which will show the Profile tab)
-                  Get.offAll(() => const dashboard_view.DashboardScreen());
+                  Get.offAllNamed('/dashboard');
                 },
                 child: const Text('Finish and View Achievements'),
               ),

@@ -7,6 +7,8 @@ import 'package:skillorbit/screens/splash_screen.dart';
 import 'package:skillorbit/screens/auth/login_screen.dart';
 import 'package:skillorbit/screens/auth/signup_screen.dart';
 import 'package:skillorbit/screens/dashboard_screen.dart';
+import 'package:skillorbit/screens/admin/admin_dashboard_screen.dart';
+import 'package:skillorbit/main.dart'; // Import to access detectedFlavor
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -33,7 +35,15 @@ class _AppState extends State<App> {
           GetPage(name: '/', page: () => const SplashScreen()),
           GetPage(name: '/login', page: () => const LoginScreen()),
           GetPage(name: '/signup', page: () => const SignupScreen()),
-          GetPage(name: '/dashboard', page: () => const DashboardScreen()),
+          GetPage(
+            name: '/dashboard',
+            page: () {
+              print('Dashboard route: loading flavor $detectedFlavor');
+              return detectedFlavor == 'admin'
+                  ? AdminDashboardScreen()
+                  : const DashboardScreen();
+            },
+          ),
         ],
       ),
     );

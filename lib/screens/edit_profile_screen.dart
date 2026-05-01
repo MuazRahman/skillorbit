@@ -2,10 +2,12 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:skillorbit/controllers/auth_controller.dart';
 import 'package:skillorbit/controllers/dashboard_controller.dart';
+import 'package:skillorbit/main.dart';
 import 'package:skillorbit/screens/dashboard_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -64,7 +66,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (image != null) {
         // Use readAsBytes() directly from XFile - this works on both Mobile and Web!
         final bytes = await image.readAsBytes();
-        
+
         // Update Rx variables
         // On web, we don't use the File class for UI previews
         _selectedImage.value = kIsWeb ? null : File(image.path);
@@ -122,7 +124,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           backgroundColor: const Color(0xFF22C55E),
           colorText: Colors.white,
         );
-        
+
         // Navigate to Profile section of Dashboard
         try {
           final dashBoardController = Get.find<DashBoardController>();
@@ -130,9 +132,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         } catch (e) {
           // Controller might not be initialized yet
         }
-        
-        final appFlavor = const String.fromEnvironment('FLAVOR');
-        if (appFlavor == 'admin') {
+
+        if (detectedFlavor == 'admin') {
           Get.offAllNamed('/dashboard');
         } else {
           Get.offAll(() => const DashboardScreen());
@@ -517,4 +518,3 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 }
-

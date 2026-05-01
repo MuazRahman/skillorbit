@@ -289,7 +289,7 @@ class CourseDetailsScreen extends StatelessWidget {
                                 final DashBoardController dashboardController =
                                     Get.find<DashBoardController>();
                                 dashboardController.currentPageIndex.value = 1;
-                                Get.offAll(() => const DashboardScreen());
+                                Get.offAllNamed('/dashboard');
                                 return;
                               }
 
@@ -305,7 +305,7 @@ class CourseDetailsScreen extends StatelessWidget {
                                   'Success', 'Enrolled in $courseName');
 
                               // Use direct navigation to be more robust against routing issues
-                              Get.offAll(() => const DashboardScreen());
+                              Get.offAllNamed('/dashboard');
                             } catch (e) {
                               print('Enrollment navigation error: $e');
                               Get.snackbar('Error',
