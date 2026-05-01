@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'skill-orbit-754.firebasestorage.app',
     measurementId: 'G-GV6CRK2RS3',
   );
+
 }

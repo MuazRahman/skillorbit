@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -26,6 +28,7 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _obscureText = true;
   bool _obscureConfirmText = true;
   File? _selectedImage;
+  Uint8List? _imageBytes;
   String? _base64Image;
 
   @override
@@ -60,12 +63,16 @@ class _SignupScreenState extends State<SignupScreen> {
       );
 
       if (image != null) {
+        final bytes = await image.readAsBytes();
+        
         setState(() {
-          _selectedImage = File(image.path);
+          if (!kIsWeb) {
+            _selectedImage = File(image.path);
+          }
+          _imageBytes = bytes;
         });
 
         // Convert to base64 for Firebase storage
-        final bytes = await _selectedImage!.readAsBytes();
         _base64Image = 'data:image/jpeg;base64,${base64Encode(bytes)}';
         _profilePictureController.text = _base64Image!;
 
@@ -219,6 +226,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           controller: _usernameController,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.1),
                             labelText: 'Username',
                             labelStyle: const TextStyle(color: Colors.white70),
                             prefixIcon: const Icon(
@@ -258,6 +267,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           keyboardType: TextInputType.emailAddress,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.1),
                             labelText: 'Email',
                             labelStyle: const TextStyle(color: Colors.white70),
                             prefixIcon: const Icon(
@@ -297,6 +308,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           obscureText: _obscureText,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.1),
                             labelText: 'Password',
                             labelStyle: const TextStyle(color: Colors.white70),
                             prefixIcon: const Icon(
@@ -345,6 +358,8 @@ class _SignupScreenState extends State<SignupScreen> {
                           obscureText: _obscureConfirmText,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white.withOpacity(0.1),
                             labelText: 'Confirm Password',
                             labelStyle: const TextStyle(color: Colors.white70),
                             prefixIcon: const Icon(
@@ -391,12 +406,14 @@ class _SignupScreenState extends State<SignupScreen> {
                         Column(
                           children: [
                             // Image Preview
-                            if (_selectedImage != null)
+                            if (_imageBytes != null || _selectedImage != null)
                               Container(
                                 margin: const EdgeInsets.only(bottom: 16),
                                 child: CircleAvatar(
                                   radius: 50,
-                                  backgroundImage: FileImage(_selectedImage!),
+                                  backgroundImage: _imageBytes != null 
+                                      ? MemoryImage(_imageBytes!) as ImageProvider
+                                      : FileImage(_selectedImage!),
                                   backgroundColor: Colors.white.withOpacity(0.2),
                                 ),
                               ),
@@ -409,7 +426,7 @@ class _SignupScreenState extends State<SignupScreen> {
                                 onPressed: _pickImage,
                                 icon: const Icon(Icons.add_photo_alternate, color: Colors.white),
                                 label: Text(
-                                  _selectedImage == null 
+                                  _imageBytes == null && _selectedImage == null 
                                       ? 'Pick Profile Picture (Optional)'
                                       : 'Change Profile Picture',
                                   style: const TextStyle(color: Colors.white),
@@ -474,7 +491,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                       TextButton(
                         onPressed: () {
-                          Get.back();
+                          Get.offAllNamed('/login');
                         },
                         child: const Text(
                           'Login',

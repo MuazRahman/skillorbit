@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:skillorbit/controllers/auth_controller.dart';
+import 'package:skillorbit/controllers/dashboard_controller.dart';
+import 'package:skillorbit/screens/dashboard_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -120,7 +122,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           backgroundColor: const Color(0xFF22C55E),
           colorText: Colors.white,
         );
-        Get.back(); // Go back to profile screen
+        
+        // Navigate to Profile section of Dashboard
+        try {
+          final dashBoardController = Get.find<DashBoardController>();
+          dashBoardController.currentPageIndex.value = 2; // Profile tab index
+        } catch (e) {
+          // Controller might not be initialized yet
+        }
+        
+        final appFlavor = const String.fromEnvironment('FLAVOR');
+        if (appFlavor == 'admin') {
+          Get.offAllNamed('/dashboard');
+        } else {
+          Get.offAll(() => const DashboardScreen());
+        }
       } else {
         Get.snackbar(
           'Error',

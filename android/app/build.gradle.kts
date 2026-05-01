@@ -33,6 +33,21 @@ android {
         versionName = flutter.versionName
     }
 
+    flavorDimensions += "appType"
+
+    productFlavors {
+        create("user") {
+            dimension = "appType"
+            applicationId = "com.skillorbit.skillorbit"
+            manifestPlaceholders["appName"] = "SkillOrbit"
+        }
+        create("admin") {
+            dimension = "appType"
+            applicationId = "com.skillorbit.skillorbit.admin"
+            manifestPlaceholders["appName"] = "SKAdmin"
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
