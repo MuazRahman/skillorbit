@@ -133,9 +133,13 @@ class ManageTopicsScreen extends StatelessWidget {
               Text(id == null ? 'Add Topic' : 'Edit Topic', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Topic Name')),
+              const SizedBox(height: 12),
               TextField(controller: descController, decoration: const InputDecoration(labelText: 'Description'), maxLines: 2),
+              const SizedBox(height: 12),
               TextField(controller: videoController, decoration: const InputDecoration(labelText: 'YouTube Video URL')),
+              const SizedBox(height: 12),
               TextField(controller: docController, decoration: const InputDecoration(labelText: 'Document/Tutorial Link')),
+              const SizedBox(height: 12),
               TextField(controller: orderController, decoration: const InputDecoration(labelText: 'Order'), keyboardType: TextInputType.number),
               const SizedBox(height: 24),
               SizedBox(
